@@ -24,7 +24,8 @@ export const HorizontalScrollSongs = ({id}) => {
     }
   }
   useEffect(() => {
-    fetchPlaylistData()
+    fetchPlaylistData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return ( <>
       {id && <>

@@ -8,7 +8,8 @@ const bottomColor = "#151515"
 export default function CustomTabBar({ state, descriptors, navigation }) {
  const {setIndex} = useContext(Context)
   useEffect(() => {
-    setIndex(0)
+    setIndex(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // eslint-disable-next-line react/no-unstable-nested-components
   function GetIcon(label, isDiabled = false){

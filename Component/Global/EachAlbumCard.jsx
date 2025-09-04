@@ -40,35 +40,44 @@ export const EachAlbumCard = memo(function EachAlbumCard({image,name,artists,id,
     }
   }
   return (
-    <Pressable onPress={()=>{
-      navigation.navigate("Album" , {id})
-    }} style={{
-      borderRadius:10,
-      height:230,
-      width:230,
-      backgroundColor:"rgba(55,55,79,0)",
-      marginRight:10,
-      flexDirection:"row",
-      overflow:"hidden",
-      ...mainContainerStyle,
-    }}>
-      <ImageBackground source={{
-        uri:image,
-      }} style={{
-        height:"100%",
-        width:'100%',
+    <Pressable
+      onPress={() => {
+        navigation.navigate('Album', {id});
+      }}
+      style={{
+        borderRadius: 10,
+        height: 230,
+        width: 230,
+        backgroundColor: 'rgba(55,55,79,0)',
+        flexDirection: 'row',
+        overflow: 'hidden',
+        margin: 5,
+        ...mainContainerStyle,
       }}>
-        <View style={{
-          width:"100%",
-          height:"100%",
-          justifyContent:"flex-end",
-          backgroundColor:"rgba(0,0,0,0.27)",
+      <ImageBackground
+        source={{
+          uri: image,
+        }}
+        style={{
+          height: '100%',
+          width: '100%',
         }}>
-          <LinearGradient start={{x: 0, y: 0}} end={{x: 0, y: 1}} colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.56)', 'rgb(0,0,0)']} style={{
-            padding:10,
+        <View
+          style={{
+            width: '100%',
+            height: '100%',
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(0,0,0,0.27)',
           }}>
-            <PlainText text={formattedText(name)}/>
-            <SmallText text={!Search ? artistsNames : artists}/>
+          <LinearGradient
+            start={{x: 0, y: 0}}
+            end={{x: 0, y: 1}}
+            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.56)', 'rgb(0,0,0)']}
+            style={{
+              padding: 10,
+            }}>
+            <PlainText text={formattedText(name)} />
+            <SmallText text={!Search ? artistsNames : artists} />
           </LinearGradient>
         </View>
       </ImageBackground>

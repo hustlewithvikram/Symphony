@@ -14,47 +14,75 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
 
   return (
     <>
-      <Spacer/>
-      <View style={{
-        paddingHorizontal:10,
-        flexDirection:"row",
-        alignItems:"center",
-        gap: 10,
-      }}>
-        <View>
-          <Text style={{
-            fontWeight:900,
-            color:theme.colors.text,
-            fontSize:width * 0.055,
-            fontFamily:"roboto",
-          }}>{`Hey, ${userName}`}</Text>
-           {/*<SmallText text=/>*/}
-          <Text style={{
-            fontWeight:500,
-            color:theme.colors.text,
-            fontSize:width * 0.040,
-            fontFamily:"roboto",
-          }}>{bottomText ? bottomText : GetCurrentDaytime()}</Text>
-        </View>
-        <View style={{flex:1}}/>
-        {showSearch &&  <Pressable style={{
-          padding:5,
-          backgroundColor:"rgba(0,0,0,0)",
-          borderRadius:10,
-        }} onPress={()=>{
-          navigation.navigate("Search")
-        }}><Feather name={"search"} size={width * 0.055} color={theme.colors.text}/></Pressable>}
-        {showSettings &&  <Pressable onPress={()=>{
-          navigation.navigate("Settings")
-        }} style={{
-          padding:5,
-          backgroundColor:"rgba(0,0,0,0)",
-          borderRadius:10,
+      <Spacer />
+      <View
+        style={{
+          paddingHorizontal: 5,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 15,
         }}>
-          <SimpleLineIcons name={"settings"} size={width * 0.055} color={theme.colors.text}/>
-        </Pressable>}
+        <View
+          style={{
+            paddingHorizontal: 15,
+            paddingVertical: 5,
+          }}>
+          <Text
+            style={{
+              fontWeight: 900,
+              color: theme.colors.text,
+              fontSize: width * 0.055,
+              fontFamily: 'roboto',
+            }}>{`Hey, ${userName}`}</Text>
+          {/*<SmallText text=/>*/}
+          <Text
+            style={{
+              fontWeight: 400,
+              color: theme.colors.text,
+              fontSize: width * 0.04,
+              fontFamily: 'roboto',
+            }}>
+            {bottomText ? bottomText : GetCurrentDaytime()}
+          </Text>
+        </View>
+        <View style={{flex: 1}} />
+        {showSearch && (
+          <Pressable
+            style={{
+              padding: 5,
+              backgroundColor: 'rgba(0,0,0,0)',
+              borderRadius: 10,
+            }}
+            onPress={() => {
+              navigation.navigate('Search');
+            }}>
+            <Feather
+              name={'search'}
+              size={width * 0.055}
+              color={theme.colors.text}
+            />
+          </Pressable>
+        )}
+        {showSettings && (
+          <Pressable
+            onPress={() => {
+              navigation.navigate('Settings');
+            }}
+            style={{
+              padding: 5,
+              paddingRight: 20,
+              backgroundColor: 'rgba(0,0,0,0)',
+              borderRadius: 10,
+            }}>
+            <SimpleLineIcons
+              name={'settings'}
+              size={width * 0.055}
+              color={theme.colors.text}
+            />
+          </Pressable>
+        )}
       </View>
-      <Spacer/>
+      <Spacer />
     </>
   );
 };

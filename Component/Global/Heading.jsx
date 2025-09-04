@@ -8,31 +8,37 @@ export const Heading = ({text, style, nospace}) => {
   const theme = useTheme()
   const width = Dimensions.get('window').width
   const [Size, setSize] = useState(width * 0.055);
-  async function getFont(){
-    const data = await GetFontSizeValue()
-    if (data === "Medium"){
-      setSize(width * 0.055)
-    } else if (data === "Small"){
-      setSize(width * 0.045)
+
+  async function getFont() {
+    const data = await GetFontSizeValue();
+    if (data === 'Medium') {
+      setSize(width * 0.055);
+    } else if (data === 'Small') {
+      setSize(width * 0.045);
     } else {
-      setSize(width * 0.065)
+      setSize(width * 0.065);
     }
   }
 
   useEffect(() => {
-    getFont()
+    getFont();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-   <>
-     {!nospace && <Spacer/>}
-     <Text numberOfLines={2} style={{
-       fontWeight:900,
-       color:theme.colors.text,
-       fontSize:Size,
-       fontFamily:'roboto',
-       ...style,
-     }}>{text}</Text>
-     {!nospace && <Spacer/>}
-   </>
+    <>
+      {!nospace && <Spacer />}
+      <Text
+        numberOfLines={2}
+        style={{
+          fontWeight: 200,
+          color: theme.colors.text,
+          fontSize: Size,
+          fontFamily: 'roboto',
+          ...style,
+        }}>
+        {text}
+      </Text>
+      {!nospace && <Spacer />}
+    </>
   );
 };

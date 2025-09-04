@@ -1,40 +1,60 @@
-import Slider from "@react-native-community/slider";
-import React from "react";
-import { Dimensions, View } from "react-native";
-import { useProgress } from "react-native-track-player";
-import { SetProgressSong } from "../../MusicPlayerFunctions";
-import { SmallText } from "../Global/SmallText";
+import React from 'react';
+import {View, Dimensions, StyleSheet} from 'react-native';
+import Slider from '@react-native-community/slider';
+import {useProgress} from 'react-native-track-player';
+import {SetProgressSong} from '../../MusicPlayerFunctions';
+import {SmallText} from '../Global/SmallText';
 
 export const ProgressBar = () => {
-  const width = Dimensions.get("window").width
-  const { position, duration } = useProgress()
-  function formatTime(val) {
-    const time =  parseFloat(val)
+  const {position, duration} = useProgress();
+  const width = Dimensions.get('window').width * 0.9; // slightly smaller than full width
+
+  // Format seconds into mm:ss
+  const formatTime = val => {
+    const time = parseFloat(val);
     const minutes = Math.floor(time / 60);
-    const seconds = time - minutes * 60;
-    if (seconds < 10){
-      return minutes.toString() + ":" + "0" + seconds.toFixed(0).toString()
-    }
-    return minutes.toString() + ":" + seconds.toFixed(0).toString()
-  }
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
   return (
-    <>
+    <View style={styles.container}>
       <Slider
-        onSlidingComplete={(progress)=>{
-          SetProgressSong(progress)
-        }}
-        style={{width: width, height: 40}}
+        style={{width, height: 40}}
         minimumValue={0}
-        maximumValue={duration}
-        value={(position >= duration) ? 0 : position}
-        minimumTrackTintColor={"white"}
+        maximumValue={duration || 0}
+        value={position >= duration ? 0 : position}
+        minimumTrackTintColor="white"
         maximumTrackTintColor="rgba(44,44,44,1)"
-        thumbTintColor={"white"}
+        thumbTintColor="white"
+        thumbStyle={styles.thumb}
+        onSlidingComplete={SetProgressSong}
       />
-      <View style={{flexDirection:"row", justifyContent:"space-between", width:"90%"}}>
-        <SmallText text={(position >= duration) ? "0:00" : formatTime(position)}/>
-        <SmallText text={formatTime(duration)}/>
+      <View style={styles.timeContainer}>
+        <SmallText
+          text={position >= duration ? '0:00' : formatTime(position)}
+        />
+        <SmallText text={formatTime(duration || 0)} />
       </View>
-    </>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '90%',
+    paddingHorizontal: 20,
+  },
+  thumb: {
+    width: 15,
+    height: 15,
+    borderRadius: 15,
+    backgroundColor: 'white',
+  },
+});

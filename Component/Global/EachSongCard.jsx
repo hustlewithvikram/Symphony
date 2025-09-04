@@ -76,43 +76,78 @@ export const EachSongCard = memo(function EachSongCard({title,artist,image,id,ur
   }
   return (
     <>
-      <View style={{
-        flexDirection:'row',
-        width:width ? width : width1,
-        marginRight:10,
-        alignItems:"center",
-        paddingRight:4,
-        // backgroundColor:"red"
-      }}>
-        <Pressable onPress={AddSongToPlayer} style={{
-          flexDirection:'row',
-          gap:10,
-          alignItems:"center",
-          maxHeight:60,
-          elevation:10,
-          marginBottom:6,
-          flex:1,
+      <View
+        style={{
+          flexDirection: 'row',
+          width: width ? width : width1,
+          alignItems: 'center',
+          // backgroundColor:"red"
         }}>
-          <FastImage source={((id === currentPlaying?.id ?? "") && playerState.state === "playing") ? require("../../Images/playing.gif") : ((id === currentPlaying?.id ?? "") && playerState.state !== "playing" ) ? require("../../Images/songPaused.gif") : {
-            uri:image,
-          }} style={{
-            height:50,
-            width:50,
-            borderRadius:10,
-          }}/>
-          <View style={{
-            flex:1,
+        <Pressable
+          onPress={AddSongToPlayer}
+          style={{
+            flexDirection: 'row',
+            gap: 10,
+            alignItems: 'center',
+            maxHeight: 60,
+            elevation: 10,
+            marginBottom: 6,
+            flex: 1,
           }}>
-            <PlainText text={FormatTitleAndArtist(title)} style={{width:titleandartistwidth ? titleandartistwidth : width1 * 0.67}}/>
-            <SmallText text={FormatTitleAndArtist(artist)} style={{width:titleandartistwidth ? titleandartistwidth : width1 * 0.67}}/>
+          <FastImage
+            source={
+              (id === currentPlaying?.id ?? '') &&
+              playerState.state === 'playing'
+                ? require('../../Images/playing.gif')
+                : (id === currentPlaying?.id ?? '') &&
+                  playerState.state !== 'playing'
+                ? require('../../Images/songPaused.gif')
+                : {
+                    uri: image,
+                  }
+            }
+            style={{
+              height: 50,
+              width: 50,
+              borderRadius: 10,
+            }}
+          />
+          <View
+            style={{
+              flex: 1,
+            }}>
+            <PlainText
+              text={FormatTitleAndArtist(title)}
+              style={{
+                width: titleandartistwidth
+                  ? titleandartistwidth
+                  : width1 * 0.67,
+              }}
+            />
+            <SmallText
+              text={FormatTitleAndArtist(artist)}
+              style={{
+                width: titleandartistwidth
+                  ? titleandartistwidth
+                  : width1 * 0.67,
+              }}
+            />
           </View>
         </Pressable>
-        <EachSongMenuButton Onpress={()=>{
-          setVisible({
-            visible:true,
-            title,artist,image,id,url,duration,language,
-          })
-        }}/>
+        <EachSongMenuButton
+          Onpress={() => {
+            setVisible({
+              visible: true,
+              title,
+              artist,
+              image,
+              id,
+              url,
+              duration,
+              language,
+            });
+          }}
+        />
       </View>
     </>
   );
