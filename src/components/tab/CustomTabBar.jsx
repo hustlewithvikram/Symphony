@@ -4,6 +4,7 @@ import BottomSheetMusic from '../musicplayer/BottomSheetMusic';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Animated, {FadeInDown, FadeInUp} from 'react-native-reanimated';
 import Context from '../../context/Context';
+
 const bottomColor = '#151515';
 
 export default function CustomTabBar({state, descriptors, navigation}) {

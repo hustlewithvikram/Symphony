@@ -1,97 +1,73 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import {BackHandler, StyleSheet} from 'react-native';
+import React, {useContext, useRef} from 'react';
+import {Dimensions, StyleSheet} from 'react-native';
 import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet';
-import {MinimizedMusic} from './MinimizedMusic';
-import {FullScreenMusic} from './FullScreenMusic';
-import QueueBottomSheet from './QueueBottomSheet';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  interpolate,
+} from 'react-native-reanimated';
 import Context from '../../context/Context';
+
+const {height} = Dimensions.get('screen');
 
 const BottomSheetMusic = ({color}) => {
   const bottomSheetRef = useRef(null);
-  const {Index, setIndex} = useContext(Context);
+  const {Index} = useContext(Context);
 
-  // Track sheet index internally
-  const [sheetIndex, setSheetIndex] = useState(Index);
-  const [isQueueOpen, setIsQueueOpen] = useState(false);
+  // Shared value for sheet position (pixels)
+  const sheetPosition = useSharedValue(0);
 
-  // Handle hardware back button
-  useEffect(() => {
-    const backAction = () => {
-      setSheetIndex(0);
-      setIndex(0);
-      return true;
+  // Define your snap points
+  const collapsedHeight = 155;
+  const expandedHeight = height; // or '100%', you can measure it dynamically if needed
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const size = 300;
+
+    // Normalize progress between 0 (collapsed) and 1 (expanded)
+    const progress =
+      (sheetPosition.value - collapsedHeight) /
+      (expandedHeight - collapsedHeight);
+
+    // Clamp the value between 0 and 1
+    const clamped = Math.min(Math.max(progress, 0), 1);
+
+    const borderRadius = interpolate(clamped, [0, 1], [size / 2, 0]);
+
+    return {
+      width: size,
+      height: size,
+      borderRadius,
+      backgroundColor: 'tomato',
     };
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction,
-    );
-    if (sheetIndex === 0) backHandler.remove();
-    return () => backHandler.remove();
-  }, [sheetIndex]);
-
-  // Update sheet index on drag
-  const handleSheetChanges = useCallback(index => {
-    setSheetIndex(index);
-    setIndex(index);
-  }, []);
+  });
 
   return (
-    <>
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={sheetIndex}
-        snapPoints={[155, '100%']}
-        enableContentPanningGesture={true}
-        enableOverDrag={true}
-        detached={false}
-        handleHeight={5}
-        handleIndicatorStyle={{
-          height: 0,
-          width: 0,
-          position: 'absolute',
-          backgroundColor: 'rgba(0,0,0,0)',
-        }}
-        handleStyle={{position: 'absolute'}}
-        backgroundStyle={{backgroundColor: color}}
-        onChange={handleSheetChanges}>
-        <BottomSheetView
-          style={{...styles.contentContainer, backgroundColor: color}}>
-          {/* Render mini player only when sheet is collapsed */}
-          {sheetIndex === 0 && (
-            <MinimizedMusic
-              setIndex={setSheetIndex}
-              openQueue={() => setIsQueueOpen(true)}
-            />
-          )}
-
-          {/* Fullscreen player always rendered */}
-          <FullScreenMusic
-            color={color}
-            Index={sheetIndex}
-            setIndex={setSheetIndex}
-            openQueue={() => setIsQueueOpen(true)}
-          />
-        </BottomSheetView>
-      </BottomSheet>
-
-      {/* Queue Bottom Sheet opens only when triggered */}
-      {isQueueOpen && (
-        <QueueBottomSheet Index={1} onClose={() => setIsQueueOpen(false)} />
-      )}
-    </>
+    <BottomSheet
+      ref={bottomSheetRef}
+      index={0}
+      snapPoints={[collapsedHeight, expandedHeight]}
+      enableContentPanningGesture
+      enableOverDrag
+      handleHeight={5}
+      handleIndicatorStyle={{
+        height: 0,
+        width: 0,
+        backgroundColor: 'transparent',
+      }}
+      backgroundStyle={{backgroundColor: color}}
+      animatedPosition={sheetPosition} // track drag in pixels
+    >
+      <BottomSheetView
+        style={[styles.contentContainer, {backgroundColor: color}]}>
+        <Animated.View style={animatedStyle} />
+      </BottomSheetView>
+    </BottomSheet>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: 'rgb(21,21,21)'},
-  contentContainer: {flex: 1},
+  contentContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
 });
 
 export default BottomSheetMusic;
