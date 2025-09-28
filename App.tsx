@@ -5,11 +5,11 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 import CodePush from 'react-native-code-push';
+import ContextState from './src/context/ContextState';
+import {InitialScreen} from './src/route/InitialScreen';
+import {RouteOnboarding} from './src/route/onboardingscreen/RouteOnboarding';
+import {RootRoute} from './src/route/RootRoute';
 
-import ContextState from './Context/ContextState';
-import {RootRoute} from './Route/RootRoute';
-import {RouteOnboarding} from './Route/OnboardingScreen/RouteOnboarding';
-import {InitialScreen} from './Route/InitialScreen';
 
 const Stack = createStackNavigator();
 const codePushOptions = {checkFrequency: CodePush.CheckFrequency.ON_APP_START};
