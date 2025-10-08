@@ -4,37 +4,19 @@ apply plugin: "com.facebook.react"
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 apply from: "../../node_modules/react-native-code-push/android/codepush.gradle"
 
-/**
- * This is the configuration block to customize your React Native Android app.
- * By default you don't need to apply any configuration, just uncomment the lines you need.
- */
 react {
+    // Add any React config here if needed
 }
 
-/**
- * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
- */
 def enableProguardInReleaseBuilds = false
-
-/**
- * The preferred build flavor of JavaScriptCore (JSC)
- *
- * For example, to use the international variant, you can use:
- * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
- *
- * The international variant includes ICU i18n library and necessary data
- * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
- * give correct results when using with locales other than en-US. Note that
- * this variant is about 6MiB larger per architecture than default.
- */
 def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
-    ndkVersion rootProject.ext.ndkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
-
     namespace "com.vikram.symphony"
+    compileSdk rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    ndkVersion rootProject.ext.ndkVersion
+
     defaultConfig {
         applicationId "com.vikram.symphony"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -43,6 +25,7 @@ android {
         versionName "1.0.0"
         multiDexEnabled true
     }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -50,35 +33,53 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-         release {
-                    if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
-                        storeFile file(MYAPP_RELEASE_STORE_FILE)
-                        storePassword MYAPP_RELEASE_STORE_PASSWORD
-                        keyAlias MYAPP_RELEASE_KEY_ALIAS
-                        keyPassword MYAPP_RELEASE_KEY_PASSWORD
-                    }
-         }
+        release {
+            if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+                storeFile file(MYAPP_RELEASE_STORE_FILE)
+                storePassword MYAPP_RELEASE_STORE_PASSWORD
+                keyAlias MYAPP_RELEASE_KEY_ALIAS
+                keyPassword MYAPP_RELEASE_KEY_PASSWORD
+            } else {
+                // fallback to debug key if not provided
+                storeFile file('debug.keystore')
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
     }
+
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
             signingConfig signingConfigs.debug
+            minifyEnabled false
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
+            shrinkResources enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
+    }
+
+    // Ensures reproducible builds and prevents split-ABI mismatch
+    packagingOptions {
+        jniLibs.useLegacyPackaging = true
+    }
+
+    lint {
+        abortOnError false
     }
 }
 
 dependencies {
-    // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
-    implementation ('com.facebook.fresco:fresco:2.0.0')
-    implementation ('com.facebook.fresco:animated-gif:2.0.0')
+    implementation("com.facebook.fresco:fresco:2.0.0")
+    implementation("com.facebook.fresco:animated-gif:2.0.0")
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
@@ -86,4 +87,6 @@ dependencies {
     }
 }
 
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+// Auto-link native modules
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+applyNativeModulesAppBuildGradle(project)

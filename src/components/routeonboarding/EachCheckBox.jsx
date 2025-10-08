@@ -1,7 +1,5 @@
-import {SpaceBetween} from '../../layout/SpaceBetween';
-import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import {useTheme} from '@react-navigation/native';
-import Animated, {FadeInDown} from 'react-native-reanimated';
+import {View, Text, Pressable, StyleSheet} from 'react-native';
+import {DefaultTheme, useTheme} from '@react-navigation/native';
 
 export const EachCheckBox = ({
   checkbox1,
@@ -11,47 +9,92 @@ export const EachCheckBox = ({
   data,
 }) => {
   return (
-    <SpaceBetween
-      style={{
-        paddingHorizontal: 10,
-        justifyContent: 'center',
-        gap: 35,
-        marginVertical: 10,
-      }}>
-      <EachCheck name={checkbox1} data={data} onpress={onCheck1} />
-      <EachCheck name={checkbox2} data={data} onpress={onCheck2} />
-    </SpaceBetween>
+    <View style={styles.row}>
+      <EachCheck name={checkbox1} data={data} onPress={onCheck1} />
+      <EachCheck name={checkbox2} data={data} onPress={onCheck2} />
+    </View>
   );
 };
-function EachCheck({name, onpress, data}) {
+
+function EachCheck({name, onPress, data}) {
   const theme = useTheme();
+  const isSelected = data.includes(name.toLowerCase());
+
+  const handlePress = () => {
+    const updated = [...data];
+    if (isSelected) {
+      const index = updated.indexOf(name.toLowerCase());
+      if (index > -1) updated.splice(index, 1);
+    } else {
+      updated.push(name.toLowerCase());
+    }
+    onPress(updated);
+  };
+
   return (
-    <Animated.View
-      entering={FadeInDown.delay(100)}
-      style={{
-        alignItems: 'flex-start',
-        width: 100,
-      }}>
-      <BouncyCheckbox
-        size={25}
-        fillColor={theme.colors.primary}
-        unfillColor="#FFFFFF"
-        text={name}
-        iconStyle={{borderColor: 'red'}}
-        innerIconStyle={{borderWidth: 2}}
-        textStyle={{fontFamily: 'JosefinSans-Regular', color: 'white'}}
-        onPress={isChecked => {
-          if (isChecked) {
-            data.push(name.toLowerCase());
-          } else {
-            const index = data.indexOf(name.toLowerCase());
-            if (index > -1) {
-              data.splice(index, 1);
-            }
-          }
-          onpress(data);
-        }}
-      />
-    </Animated.View>
+    <Pressable
+      onPress={handlePress}
+      style={({pressed}) => [
+        styles.checkboxContainer,
+        {
+          backgroundColor: isSelected ? theme.colors.primary : '#fff',
+          borderColor: theme.colors.primary,
+          opacity: pressed ? 0.7 : 1,
+        },
+      ]}>
+      <View style={styles.checkbox}>
+        {isSelected && <View style={styles.innerCheck} />}
+      </View>
+      <Text
+        style={[
+          styles.checkboxText,
+          {color: isSelected ? '#fff' : DefaultTheme.colors.text},
+        ]}>
+        {name}
+      </Text>
+    </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 150,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 25,
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    backgroundColor: 'transparent',
+  },
+  innerCheck: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#fff',
+  },
+  checkboxText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

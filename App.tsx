@@ -6,10 +6,9 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 import CodePush from 'react-native-code-push';
 import ContextState from './src/context/ContextState';
-import {InitialScreen} from './src/route/InitialScreen';
-import {RouteOnboarding} from './src/route/onboardingscreen/RouteOnboarding';
+import {RouteOnboarding} from './src/route/onboarding/RouteOnboarding';
 import {RootRoute} from './src/route/RootRoute';
-
+import {SplashScreen} from './src/route/SplashScreen';
 
 const Stack = createStackNavigator();
 const codePushOptions = {checkFrequency: CodePush.CheckFrequency.ON_APP_START};
@@ -70,7 +69,7 @@ const App = () => {
           <NavigationContainer theme={MyTheme}>
             <View style={{flex: 1, backgroundColor: 'transparent'}}>
               <Stack.Navigator screenOptions={{headerShown: false}}>
-                <Stack.Screen name="Initial" component={InitialScreen} />
+                <Stack.Screen name="SplashScreen" component={SplashScreen} />
                 <Stack.Screen name="Onboarding" component={RouteOnboarding} />
                 <Stack.Screen name="MainRoute" component={RootRoute} />
               </Stack.Navigator>

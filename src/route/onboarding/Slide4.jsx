@@ -1,14 +1,13 @@
-import {MainWrapper} from '../../layout/MainWrapper';
-import FastImage from 'react-native-fast-image';
 import {View} from 'react-native';
 import Animated, {FadeInDown} from 'react-native-reanimated';
+import FastImage from 'react-native-fast-image';
 import {Heading} from '../../components/global/Heading';
 import {PlainText} from '../../components/global/PlainText';
 import {BottomNextAndPrevious} from '../../components/routeonboarding/BottomNextAndPrevious';
 
-export const Slide1 = ({navigation}) => {
+export const Slide4 = ({navigation}) => {
   return (
-    <MainWrapper>
+    <>
       <View
         style={{
           alignItems: 'center',
@@ -17,7 +16,7 @@ export const Slide1 = ({navigation}) => {
         }}>
         <Animated.View entering={FadeInDown.duration(500)}>
           <FastImage
-            source={require('../../images/Logo.jpg')}
+            source={require('../../Images/letsgo.gif')}
             style={{
               height: 200,
               width: 200,
@@ -25,23 +24,24 @@ export const Slide1 = ({navigation}) => {
             }}
           />
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(500)}>
-          <Heading
-            text={'Welcome to Melody'}
-            nospace={true}
-            style={{marginTop: 10}}
-          />
-        </Animated.View>
-        <Animated.View entering={FadeInDown.delay(750)}>
-          <PlainText text={'listen to music for free'} />
-        </Animated.View>
+        <Heading
+          text={'You are all set!'}
+          nospace={true}
+          style={{marginTop: 10}}
+        />
+        <PlainText text={'Feel the Symphony'} />
       </View>
       <BottomNextAndPrevious
+        nextText={'Lets Go'}
         delay={100}
+        showPrevious={true}
+        onPreviousPress={() => {
+          navigation.replace('Slide3');
+        }}
         onNextPress={() => {
-          navigation.replace('Slide2');
+          navigation.replace('MainRoute');
         }}
       />
-    </MainWrapper>
+    </>
   );
 };

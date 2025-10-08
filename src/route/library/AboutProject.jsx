@@ -73,14 +73,14 @@ export const AboutProject = () => {
               title={'Telegram'}
               icon={<EvilIcons name={'sc-telegram'} size={35} />}
               color={'rgb(50,95,123)'}
-              subTitle={'Melody'}
+              subTitle={'Symphony'}
               url={'https://t.me/+-irbEXtzhwI1NzU1'}
             />
             <EachCommunityButton
               title={'Whatsapp'}
               icon={<FontAwesome name={'whatsapp'} size={35} />}
               color={'rgb(52,123,50)'}
-              subTitle={'Melody'}
+              subTitle={'Symphony'}
               url={'https://whatsapp.com/channel/0029VaCr9oTIt5s5DxEQCI11'}
             />
           </View>
@@ -96,11 +96,11 @@ export const AboutProject = () => {
               style={{
                 justifyContent: 'space-around',
               }}
-              title={'Melody'}
+              title={'Symphony'}
               icon={<AntDesign name={'github'} size={40} />}
               color={'rgb(46,46,46)'}
               subTitle={'An open source music player to listen music for free.'}
-              url={'https://github.com/Infinite-Null/Melody'}
+              url={'https://github.com/Infinite-Null/Symphony'}
             />
           </View>
           <Spacer />

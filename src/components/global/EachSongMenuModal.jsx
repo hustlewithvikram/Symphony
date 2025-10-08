@@ -37,9 +37,9 @@ export const EachSongMenuModal = ({Visible, setVisible}) => {
         path:
           path === 'Downloads'
             ? dirs.LegacyDownloadDir +
-              `/Melody/${FormatTitleAndArtist(Visible.title)}.m4a`
+              `/Symphony/${FormatTitleAndArtist(Visible.title)}.m4a`
             : dirs.LegacyMusicDir +
-              `/Melody/${FormatTitleAndArtist(Visible.title)}.m4a`,
+              `/Symphony/${FormatTitleAndArtist(Visible.title)}.m4a`,
         notification: true,
         title: `${FormatTitleAndArtist(Visible.title)}`,
       },
