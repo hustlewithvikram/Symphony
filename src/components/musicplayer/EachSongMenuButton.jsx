@@ -1,9 +1,11 @@
 import {Pressable} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import Entypo from 'react-native-vector-icons/Entypo';
+import {useAppTheme} from '../../theme';
 
 export const EachSongMenuButton = ({Onpress}) => {
-  const theme = useTheme();
+  const theme = useAppTheme();
+
   return (
     <Pressable
       onPress={() => {
@@ -11,13 +13,13 @@ export const EachSongMenuButton = ({Onpress}) => {
       }}
       style={{
         padding: 10,
-        backgroundColor: 'rgb(28,28,28)',
+        backgroundColor: theme.colors.primaryDark,
         borderRadius: 100,
       }}>
       <Entypo
         name={'dots-three-vertical'}
         size={17}
-        color={theme.colors.text}
+        color={theme.colors.textDark}
       />
     </Pressable>
   );

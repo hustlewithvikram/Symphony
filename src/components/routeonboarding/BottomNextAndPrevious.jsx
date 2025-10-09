@@ -22,7 +22,7 @@ export const BottomNextAndPrevious = ({
             onPress={onPreviousPress}
             style={({pressed}) => [
               styles.prevButton,
-              {backgroundColor: buttonBg, borderColor: buttonColor},
+              {backgroundColor: buttonBg},
               pressed && {opacity: 0.6},
             ]}>
             <MaterialIcons
@@ -31,7 +31,9 @@ export const BottomNextAndPrevious = ({
               color={buttonColor}
               style={{marginRight: 8}}
             />
-            <Text style={[styles.prevText, {color: buttonColor}]}>Prev</Text>
+            <Text style={[styles.prevText, {color: buttonColor}]}>
+              Previous
+            </Text>
           </Pressable>
         </Animated.View>
       )}
@@ -70,7 +72,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,
-    borderWidth: 1,
   },
   prevText: {
     fontSize: 16,

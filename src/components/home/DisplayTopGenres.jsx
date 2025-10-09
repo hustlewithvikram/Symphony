@@ -2,6 +2,7 @@ import {memo} from 'react';
 import {ScrollView} from 'react-native';
 import {EachMomentsandGenres} from '../discover/EachMomentsandGenres';
 import {useTheme} from '@react-navigation/native';
+import {useAppTheme} from '../../theme';
 
 export const DisplayTopGenres = memo(() => {
   const genres = [
@@ -14,7 +15,8 @@ export const DisplayTopGenres = memo(() => {
     'Retro',
     'Sad',
   ];
-  const theme = useTheme();
+  const theme = useAppTheme();
+
   return (
     <ScrollView
       showsHorizontalScrollIndicator={false}
@@ -32,7 +34,8 @@ export const DisplayTopGenres = memo(() => {
             padding: 0,
             paddingLeft: 15,
             borderRadius: 100000,
-            backgroundColor: theme.colors.tertiaryDark,
+            backgroundColor: theme.colors.primary,
+            color: theme.colors.text,
           }}
         />
       ))}

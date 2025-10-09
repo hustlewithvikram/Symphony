@@ -5,10 +5,11 @@ import {Spacer} from '../global/Spacer';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import {GetCurrentDaytime} from '../../utils/GetCurrentDaytime';
 import {useGetUserName} from '../../hooks/useGetUserName';
+import {useAppTheme} from '../../theme';
 
 export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
   const userName = useGetUserName();
-  const theme = useTheme();
+  const theme = useAppTheme();
   const width = Dimensions.get('window').width;
   const navigation = useNavigation();
 
@@ -34,7 +35,6 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
               fontSize: width * 0.055,
               fontFamily: 'roboto',
             }}>{`Hey, ${userName}`}</Text>
-          {/*<SmallText text=/>*/}
           <Text
             style={{
               fontWeight: 400,
@@ -46,6 +46,8 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
           </Text>
         </View>
         <View style={{flex: 1}} />
+
+        {/* show search */}
         {showSearch && (
           <Pressable
             style={{
@@ -59,10 +61,12 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
             <Feather
               name={'search'}
               size={width * 0.055}
-              color={theme.colors.text}
+              color={theme.colors.textDark}
             />
           </Pressable>
         )}
+
+        {/* settings icon */}
         {showSettings && (
           <Pressable
             onPress={() => {

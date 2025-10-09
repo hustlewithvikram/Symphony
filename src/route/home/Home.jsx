@@ -12,139 +12,125 @@ import {getHomePageData} from '../../api/homepage';
 import {EachPlaylistCard} from '../../components/global/EachPlaylistCard';
 import {GetLanguageValue} from '../../localstorage/Languages';
 import {DisplayTopGenres} from '../../components/home/DisplayTopGenres';
-import {useTheme} from '@react-navigation/native';
+import {useAppTheme} from '../../theme';
 
 export const Home = () => {
-  const [Loading, setLoading] = useState(true);
-  const [Data, setData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({});
   const [showHeader, setShowHeader] = useState(false);
-  const theme = useTheme();
+  const theme = useAppTheme();
 
-  async function fetchHomePageData() {
-    try {
-      setLoading(true);
-      const Languages = await GetLanguageValue();
-      const data = await getHomePageData(Languages);
-      setData(data);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoading(false);
-    }
-  }
   useEffect(() => {
-    fetchHomePageData();
+    (async () => {
+      try {
+        setLoading(true);
+        const languages = await GetLanguageValue();
+        const response = await getHomePageData(languages);
+        setData(response);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
+
+  if (loading) {
+    return <LoadingComponent loading={loading} />;
+  }
+
+  const renderHorizontalAlbums = albums => (
+    <FlatList
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{paddingLeft: 20, gap: 12}}
+      data={albums ?? []}
+      renderItem={({item}) => (
+        <EachAlbumCard
+          key={item.id}
+          id={item.id}
+          name={item.name}
+          image={item.image[2]?.link ?? ''}
+          artists={item.artists}
+        />
+      )}
+    />
+  );
+
+  const renderHorizontalPlaylists = playlists => (
+    <FlatList
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{paddingLeft: 20, gap: 12}}
+      data={playlists ?? []}
+      renderItem={({item}) => (
+        <EachPlaylistCard
+          key={item.id}
+          id={item.id}
+          name={item.title}
+          follower={item.subtitle}
+          image={item.image[2]?.link}
+        />
+      )}
+    />
+  );
+
   return (
     <MainWrapper>
-      <LoadingComponent loading={Loading} />
-      {!Loading && (
-        <View>
-          <ScrollView
-            style={{zIndex: -1}}
-            onScroll={e => {
-              if (e.nativeEvent.contentOffset.y > 200 && !showHeader) {
-                setShowHeader(true);
-              } else if (e.nativeEvent.contentOffset.y < 200 && showHeader) {
-                setShowHeader(false);
-              }
-            }}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingBottom: 90,
-              paddingTop: 40,
-              backgroundColor: theme.colors.tertiary,
-            }}>
-            <RouteHeading showSearch={true} showSettings={true} />
-            {/*<DisplayTopSection playlist={Data.data.charts.filter((e)=>e.type === 'playlist')}/>*/}
-            <DisplayTopGenres />
-            <PaddingConatiner>
-              <HorizontalScrollSongs id={Data.data.charts[0].id} />
-              <Heading text={'Recommended'} />
-            </PaddingConatiner>
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingLeft: 20,
-                gap: 15,
-              }}
-              data={Data?.data?.playlists ?? []}
-              renderItem={(item, i) => (
-                <EachPlaylistCard
-                  name={item.item.title}
-                  follower={item.item.subtitle}
-                  key={item.index}
-                  image={item.item.image[2].link}
-                  id={item.item.id}
-                />
-              )}
-            />
-            <PaddingConatiner>
-              <Heading text={'Trending Albums'} />
-            </PaddingConatiner>
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingLeft: 20,
-              }}
-              data={Data?.data?.trending?.albums ?? []}
-              renderItem={item => (
-                <EachAlbumCard
-                  image={item.item.image[2].link}
-                  artists={item.item.artists}
-                  key={item.index}
-                  name={item.item.name}
-                  id={item.item.id}
-                />
-              )}
-            />
-            <PaddingConatiner>
-              <HorizontalScrollSongs id={Data?.data?.charts[1]?.id} />
-            </PaddingConatiner>
-            <PaddingConatiner>
-              <Heading text={'Top Charts'} />
-            </PaddingConatiner>
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingLeft: 20,
-              }}
-              data={[1]}
-              renderItem={() => <RenderTopCharts playlist={Data.data.charts} />}
-            />
-            <PaddingConatiner>
-              <HorizontalScrollSongs id={Data?.data?.charts[3]?.id} />
-            </PaddingConatiner>
-            <PaddingConatiner>
-              <Heading text={'Recommended Albums'} />
-            </PaddingConatiner>
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingLeft: 20,
-              }}
-              data={Data?.data?.albums ?? []}
-              renderItem={item => (
-                <EachAlbumCard
-                  image={item?.item?.image[2]?.link ?? ''}
-                  artists={item.item.artists}
-                  key={item.index}
-                  name={item.item.name}
-                  id={item.item.id}
-                />
-              )}
-            />
-            <PaddingConatiner>
-              <HorizontalScrollSongs id={Data?.data?.charts[2]?.id} />
-            </PaddingConatiner>
-          </ScrollView>
-          {/* <TopHeader showHeader={showHeader} /> */}
-        </View>
-      )}
+      <View style={{flex: 1}}>
+        <ScrollView
+          style={{zIndex: -1}}
+          showsVerticalScrollIndicator={false}
+          onScroll={e => {
+            const yOffset = e.nativeEvent.contentOffset.y;
+            if (yOffset > 200 && !showHeader) {
+              setShowHeader(true);
+            } else if (yOffset < 200 && showHeader) {
+              setShowHeader(false);
+            }
+          }}
+          contentContainerStyle={{
+            paddingBottom: 90,
+            paddingTop: 40,
+            backgroundColor: theme.colors.tertiary,
+          }}>
+          <RouteHeading showSearch showSettings />
+          <DisplayTopGenres />
+
+          <PaddingConatiner>
+            <HorizontalScrollSongs id={data.data.charts[0]?.id} />
+            <Heading text="Recommended" />
+          </PaddingConatiner>
+
+          {renderHorizontalPlaylists(data.data.playlists)}
+          <PaddingConatiner>
+            <Heading text="Trending Albums" />
+          </PaddingConatiner>
+          {renderHorizontalAlbums(data.data.trending?.albums)}
+
+          <PaddingConatiner>
+            <HorizontalScrollSongs id={data.data.charts[1]?.id} />
+            <Heading text="Top Charts" />
+          </PaddingConatiner>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{paddingLeft: 20}}
+            data={[1]}
+            renderItem={() => <RenderTopCharts playlist={data.data.charts} />}
+          />
+
+          <PaddingConatiner>
+            <HorizontalScrollSongs id={data.data.charts[3]?.id} />
+            <Heading text="Recommended Albums" />
+          </PaddingConatiner>
+          {renderHorizontalAlbums(data.data.albums)}
+
+          <PaddingConatiner>
+            <HorizontalScrollSongs id={data.data.charts[2]?.id} />
+          </PaddingConatiner>
+        </ScrollView>
+      </View>
     </MainWrapper>
   );
 };

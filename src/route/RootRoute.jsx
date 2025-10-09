@@ -3,18 +3,22 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import Octicons from 'react-native-vector-icons/Octicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '@react-navigation/native';
-import CustomTabBar from '../components/tab/CustomTabBar';
+import BottomTabBar from '../components/tab/BottomTabBar';
 import {HomeRoute} from './home/HomeRoute';
 import {DiscoverRoute} from './discover/DiscoverRoute';
 import {LibraryRoute} from './library/LibraryRoute';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {useAppTheme} from '../theme';
 
 const Tab = createBottomTabNavigator();
+
 export const RootRoute = () => {
-  const theme = useTheme();
+  const theme = useAppTheme();
+
   return (
     <>
       <Tab.Navigator
-        tabBar={props => <CustomTabBar {...props} />}
+        tabBar={props => <BottomTabBar {...props} />}
         screenOptions={{
           tabBarShowLabel: false,
           tabBarLabelStyle: {
@@ -32,7 +36,8 @@ export const RootRoute = () => {
           options={{
             // eslint-disable-next-line react/no-unstable-nested-components
             tabBarIcon: ({color, size, focused}) => (
-              <Octicons name="home" color={color} size={size - 4} />
+              <MaterialIcons name="home" size={size} color={color} />
+              // <Octicons name="home" color={color} size={size - 4} />
             ),
           }}
           name="Home"

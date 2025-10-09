@@ -15,7 +15,10 @@ export const Discover = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{paddingBottom: 100}}>
+        {/* Discover music */}
         <RouteHeading bottomText={'Discover music'} showSearch={true} />
+
+        {/*  */}
         <View
           style={{
             flexDirection: 'row',

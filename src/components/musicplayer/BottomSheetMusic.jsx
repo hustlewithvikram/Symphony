@@ -19,14 +19,13 @@ import TrackPlayer, {
   useActiveTrack,
   useProgress,
   usePlaybackState,
-  State,
   RepeatMode,
   useTrackPlayerEvents,
   Event,
 } from 'react-native-track-player';
 import FastImage from 'react-native-fast-image';
-
-const {height: SCREEN_HEIGHT, width: SCREEN_WIDTH} = Dimensions.get('window');
+import {useAppTheme} from '../../theme';
+import {useNavigationState} from '@react-navigation/native';
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 const AnimatedTouchableOpacity =
@@ -38,6 +37,18 @@ const BottomSheetMusic = () => {
   const currentPlaying = useActiveTrack();
   const {position, duration} = useProgress();
   const playbackState = usePlaybackState();
+
+  // Get current navigation route
+  const navigationState = useNavigationState(state => state);
+  const currentRoute = navigationState?.routes[navigationState.index]?.name;
+
+  console.log('navigationState', navigationState);
+
+  // Check if current route is Settings
+  const isSettingsRoute = currentRoute === 'Settings';
+
+  // app theme
+  const theme = useAppTheme();
 
   // Determine if music is playing based on playback state
   const isPlaying = playbackState.state === 'playing';
@@ -74,6 +85,13 @@ const BottomSheetMusic = () => {
     };
     initializeRepeatMode();
   }, []);
+
+  // Close bottom sheet when navigating to Settings
+  useEffect(() => {
+    if (isSettingsRoute && bottomSheetRef.current) {
+      bottomSheetRef.current.collapse();
+    }
+  }, [isSettingsRoute]);
 
   async function PlaySong() {
     await TrackPlayer.play();
@@ -457,6 +475,17 @@ const BottomSheetMusic = () => {
     };
   });
 
+  // Bottom sheet container style - hides when in Settings
+  const bottomSheetContainerStyle = useAnimatedStyle(() => {
+    const display = isSettingsRoute ? 'none' : 'flex';
+    const opacity = isSettingsRoute ? 0 : 1;
+
+    return {
+      display,
+      opacity,
+    };
+  });
+
   const handlePlayPause = async () => {
     if (isPlaying) {
       PauseSong();
@@ -477,6 +506,11 @@ const BottomSheetMusic = () => {
     await toggleRepeat();
   };
 
+  // Don't render the bottom sheet at all when in Settings route
+  if (isSettingsRoute) {
+    return null;
+  }
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
@@ -484,32 +518,51 @@ const BottomSheetMusic = () => {
       snapPoints={snapPoints}
       animatedIndex={animatedIndex}
       handleComponent={null}
-      backgroundStyle={styles.background}>
+      backgroundStyle={[
+        styles.background,
+        {backgroundColor: theme.colors.primary},
+      ]}
+      enablePanDownToClose={false}
+      enableOverDrag={false}>
       <View style={styles.container}>
         {/* Album Art */}
         <Animated.View style={[styles.coverAndSongInfo, coverAndSongInfoStyle]}>
           <Animated.View style={[styles.albumArt, albumArtStyle]}>
-            <FastImage
-              source={{
-                uri:
-                  currentPlaying?.artwork ??
-                  'https://htmlcolorcodes.com/assets/images/colors/gray-color-solid-background-1920x1080.png',
-                priority: FastImage.priority.high,
-              }}
-              style={{width: '100%', height: '100%'}}
-              resizeMode={FastImage.resizeMode.cover}
-            />
+            {currentPlaying?.artwork ? (
+              <FastImage
+                source={{
+                  uri:
+                    currentPlaying?.artwork ??
+                    'https://htmlcolorcodes.com/assets/images/colors/gray-color-solid-background-1920x1080.png',
+                  priority: FastImage.priority.high,
+                }}
+                style={{width: '100%', height: '100%'}}
+                resizeMode={FastImage.resizeMode.cover}
+              />
+            ) : (
+              <View
+                style={{
+                  backgroundColor: theme.colors.primary,
+                  height: '100%',
+                  width: '100%',
+                }}
+              />
+            )}
           </Animated.View>
 
           <Animated.View style={[styles.songInfoContainer, songInfoStyle]}>
             <AnimatedText
-              style={[styles.songTitle, titleStyle]}
+              style={[styles.songTitle, {color: theme.colors.text}, titleStyle]}
               numberOfLines={1}
               ellipsizeMode="tail">
               {currentPlaying?.title || 'No song playing'}
             </AnimatedText>
             <AnimatedText
-              style={[styles.songArtist, artistStyle]}
+              style={[
+                styles.songArtist,
+                {color: theme.colors.text},
+                artistStyle,
+              ]}
               numberOfLines={1}
               ellipsizeMode="tail">
               {currentPlaying?.artist || 'Unknown artist'}
@@ -522,9 +575,9 @@ const BottomSheetMusic = () => {
               onPress={handlePlayPause}
               style={styles.miniPlayButton}>
               {isPlaying ? (
-                <MaterialIcons name={'pause-circle'} size={20} color="#fff" />
+                <MaterialIcons name={'pause-circle'} size={40} color="#fff" />
               ) : (
-                <MaterialIcons name={'play-circle'} size={20} color="#fff" />
+                <MaterialIcons name={'play-circle'} size={40} color="#fff" />
               )}
             </TouchableOpacity>
             <TouchableOpacity
@@ -542,11 +595,21 @@ const BottomSheetMusic = () => {
             onLayout={handleProgressBarLayout}
             onTouchStart={handleProgressTouch}
             {...panResponder.panHandlers}>
-            <AnimatedView style={[styles.progressFill, progressFillStyle]} />
+            <AnimatedView
+              style={[
+                styles.progressFill,
+                {backgroundColor: theme.colors.background},
+                progressFillStyle,
+              ]}
+            />
           </View>
           <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
-            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+            <Text style={[styles.timeText, {color: theme.colors.text}]}>
+              {formatTime(currentTime)}
+            </Text>
+            <Text style={[styles.timeText, {color: theme.colors.text}]}>
+              {formatTime(duration)}
+            </Text>
           </View>
         </Animated.View>
 
@@ -569,9 +632,9 @@ const BottomSheetMusic = () => {
             onPress={handlePlayPause}
             style={[styles.playButton, playButtonStyle]}>
             {isPlaying ? (
-              <MaterialIcons name={'pause-circle'} size={24} color="#fff" />
+              <MaterialIcons name={'pause-circle'} size={70} color="#fff" />
             ) : (
-              <MaterialIcons name={'play-circle'} size={24} color="#fff" />
+              <MaterialIcons name={'play-circle'} size={70} color="#fff" />
             )}
           </AnimatedTouchableOpacity>
 
@@ -596,9 +659,7 @@ const BottomSheetMusic = () => {
 };
 
 const styles = StyleSheet.create({
-  background: {
-    backgroundColor: '#1a1a1a',
-  },
+  background: {},
   container: {
     flex: 1,
     paddingHorizontal: 20,
@@ -621,14 +682,12 @@ const styles = StyleSheet.create({
   miniControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
   },
   miniPlayButton: {
     padding: 8,
-    backgroundColor: '#1DB954',
     borderRadius: 20,
-    width: 36,
-    height: 36,
+    width: 60,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -653,7 +712,6 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#1DB954',
     borderRadius: 999,
   },
   timeContainer: {
@@ -678,7 +736,6 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   playButton: {
-    backgroundColor: '#1DB954',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -1,50 +1,32 @@
 import React, {useContext, useEffect} from 'react';
 import {View, StyleSheet, Pressable, Text} from 'react-native';
 import BottomSheetMusic from '../musicplayer/BottomSheetMusic';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import Animated, {FadeInDown, FadeInUp} from 'react-native-reanimated';
 import Context from '../../context/Context';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {DefaultTheme} from 'react-native-paper';
+import {useAppTheme} from '../../theme';
 
-const bottomColor = '#151515';
+const bottomColor = DefaultTheme.colors.background;
 
-export default function CustomTabBar({state, descriptors, navigation}) {
+export default function BottomTabBar({state, descriptors, navigation}) {
   const {setIndex} = useContext(Context);
+  const theme = useAppTheme();
+
   useEffect(() => {
     setIndex(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // eslint-disable-next-line react/no-unstable-nested-components
-  function GetIcon(label, isDiabled = false) {
-    if (label === 'Home') {
-      return (
-        <Ionicons
-          name={'headset-outline'}
-          color={isDiabled ? 'rgb(153,151,151)' : 'white'}
-          size={22}
-        />
-      );
-    } else if (label === 'Discover') {
-      return (
-        <Ionicons
-          name={'apps-outline'}
-          color={isDiabled ? 'rgb(153,151,151)' : 'white'}
-          size={22}
-        />
-      );
-    } else if (label === 'Library') {
-      return (
-        <Ionicons
-          name={'person-outline'}
-          color={isDiabled ? 'rgb(153,151,151)' : 'white'}
-          size={22}
-        />
-      );
-    }
-  }
+
   return (
     <>
-      <BottomSheetMusic color={bottomColor} />
-      <View style={styles.mainContainer}>
+      <BottomSheetMusic />
+
+      <View
+        style={[
+          styles.mainContainer,
+          {backgroundColor: theme.colors.primaryDark},
+        ]}>
         {state.routes.map((route, index) => {
           const {options} = descriptors[route.key];
           const label =
@@ -63,6 +45,7 @@ export default function CustomTabBar({state, descriptors, navigation}) {
               navigation.navigate(route.name);
             }
           };
+
           return (
             <View key={index} style={styles.mainItemContainer}>
               <Pressable
@@ -82,7 +65,7 @@ export default function CustomTabBar({state, descriptors, navigation}) {
                       borderRadius: 15,
                       gap: 2,
                     }}>
-                    {GetIcon(label, true)}
+                    {getIcon(label, true)}
                     <Text
                       style={{
                         fontSize: 8,
@@ -105,7 +88,7 @@ export default function CustomTabBar({state, descriptors, navigation}) {
                       borderRadius: 15,
                       gap: 2,
                     }}>
-                    {GetIcon(label)}
+                    {getIcon(label)}
                     <Animated.Text
                       entering={FadeInDown}
                       style={{
@@ -127,12 +110,41 @@ export default function CustomTabBar({state, descriptors, navigation}) {
   );
 }
 
+function getIcon(label, isDiabled = false) {
+  if (label === 'Home') {
+    return (
+      <MaterialIcons
+        name={'home'}
+        color={isDiabled ? 'rgb(153,151,151)' : 'white'}
+        size={22}
+      />
+    );
+  } else if (label === 'Discover') {
+    return (
+      <MaterialIcons
+        name={'explore'}
+        color={isDiabled ? 'rgb(153,151,151)' : 'white'}
+        size={22}
+      />
+    );
+  } else if (label === 'Library') {
+    return (
+      <MaterialIcons
+        name={'person'}
+        color={isDiabled ? 'rgb(153,151,151)' : 'white'}
+        size={22}
+      />
+    );
+  }
+}
+
 const styles = StyleSheet.create({
   mainContainer: {
     flexDirection: 'row',
     height: 70,
     alignItems: 'center',
-    backgroundColor: bottomColor,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   mainItemContainer: {
     flex: 1,

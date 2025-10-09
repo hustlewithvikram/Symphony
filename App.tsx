@@ -9,6 +9,7 @@ import ContextState from './src/context/ContextState';
 import {RouteOnboarding} from './src/route/onboarding/RouteOnboarding';
 import {RootRoute} from './src/route/RootRoute';
 import {SplashScreen} from './src/route/SplashScreen';
+import {Provider} from 'react-native-paper';
 
 const Stack = createStackNavigator();
 const codePushOptions = {checkFrequency: CodePush.CheckFrequency.ON_APP_START};
@@ -63,21 +64,23 @@ const App = () => {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{flex: 1, backgroundColor: 'transparent'}}>
-      <ContextState>
-        <BottomSheetModalProvider>
-          <NavigationContainer theme={MyTheme}>
-            <View style={{flex: 1, backgroundColor: 'transparent'}}>
-              <Stack.Navigator screenOptions={{headerShown: false}}>
-                <Stack.Screen name="SplashScreen" component={SplashScreen} />
-                <Stack.Screen name="Onboarding" component={RouteOnboarding} />
-                <Stack.Screen name="MainRoute" component={RootRoute} />
-              </Stack.Navigator>
-            </View>
-          </NavigationContainer>
-        </BottomSheetModalProvider>
-      </ContextState>
-    </GestureHandlerRootView>
+    <Provider>
+      <GestureHandlerRootView style={{flex: 1, backgroundColor: 'transparent'}}>
+        <ContextState>
+          <BottomSheetModalProvider>
+            <NavigationContainer theme={MyTheme}>
+              <View style={{flex: 1, backgroundColor: 'transparent'}}>
+                <Stack.Navigator screenOptions={{headerShown: false}}>
+                  <Stack.Screen name="SplashScreen" component={SplashScreen} />
+                  <Stack.Screen name="Onboarding" component={RouteOnboarding} />
+                  <Stack.Screen name="MainRoute" component={RootRoute} />
+                </Stack.Navigator>
+              </View>
+            </NavigationContainer>
+          </BottomSheetModalProvider>
+        </ContextState>
+      </GestureHandlerRootView>
+    </Provider>
   );
 };
 

@@ -77,6 +77,8 @@ android {
 dependencies {
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
+    debugImplementation("com.facebook.flipper:flipper:0.265.0")
+    debugImplementation("com.facebook.soloader:soloader:0.10.1")
     implementation("com.facebook.fresco:fresco:2.0.0")
     implementation("com.facebook.fresco:animated-gif:2.0.0")
 

@@ -1,12 +1,14 @@
 import {useTheme} from '@react-navigation/native';
 import {memo} from 'react';
 import {StatusBar, View} from 'react-native';
+import {useAppTheme} from '../theme';
 
 export const MainWrapper = memo(function MainWrapper({children}) {
-  const theme = useTheme();
+  const theme = useAppTheme();
+
   return (
     <View style={{flex: 1, backgroundColor: theme.colors.background}}>
-      <StatusBar backgroundColor={theme.colors.background} animated={true} />
+      <StatusBar animated={true} />
       {children}
     </View>
   );

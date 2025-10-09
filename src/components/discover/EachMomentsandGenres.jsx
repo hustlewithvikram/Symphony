@@ -1,9 +1,12 @@
 import {Pressable, View} from 'react-native';
 import {PlainText} from '../global/PlainText';
 import {useNavigation} from '@react-navigation/native';
+import {useAppTheme} from '../../theme';
 
 export const EachMomentsandGenres = ({text, color, showLeftColor, style}) => {
   const navigation = useNavigation();
+  const theme = useAppTheme();
+
   return (
     <Pressable
       onPress={() => {
@@ -31,7 +34,10 @@ export const EachMomentsandGenres = ({text, color, showLeftColor, style}) => {
           }}
         />
       )}
-      <PlainText text={text} style={{opacity: 0.9}} />
+      <PlainText
+        text={text}
+        style={{opacity: 0.9, color: theme.colors.textDark}}
+      />
     </Pressable>
   );
 };
