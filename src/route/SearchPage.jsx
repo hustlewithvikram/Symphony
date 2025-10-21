@@ -12,8 +12,10 @@ import PlaylistDisplay from '../components/searchpage/PlaylistDisplay';
 import {getSearchAlbumData} from '../api/album';
 import AlbumsDisplay from '../components/searchpage/AlbumDisplay';
 import {Spacer} from '../components/global/Spacer';
+import {useAppTheme} from '../theme';
 
 export const SearchPage = ({navigation}) => {
+  const theme = useAppTheme();
   const [ActiveTab, setActiveTab] = useState(0);
   const [query, setQuery] = useState('');
   // const [ApiQuery, setApiQuery] = useState("");
@@ -21,6 +23,7 @@ export const SearchPage = ({navigation}) => {
   const [Loading, setLoading] = useState(false);
   const [Data, setData] = useState({});
   const limit = 20;
+
   async function fetchSearchData(text) {
     if (SearchText !== '') {
       try {
@@ -61,7 +64,7 @@ export const SearchPage = ({navigation}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ActiveTab]);
   return (
-    <MainWrapper>
+    <View style={{backgroundColor: theme.colors.primaryDark}}>
       <Spacer height={50} />
       <SearchBar
         navigation={navigation}
@@ -98,6 +101,6 @@ export const SearchPage = ({navigation}) => {
           )}
         </View>
       )}
-    </MainWrapper>
+    </View>
   );
 };

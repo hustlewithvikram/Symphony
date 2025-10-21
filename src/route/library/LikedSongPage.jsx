@@ -12,6 +12,7 @@ export const LikedSongPage = () => {
   const [LikedSongs, setLikedSongs] = useState([]);
   const width = Dimensions.get('window').width;
   const theme = useTheme();
+
   async function getAllLikedSongs() {
     const Songs = await GetLikedSongs();
     const Temp = [];

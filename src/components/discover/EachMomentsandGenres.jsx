@@ -36,7 +36,7 @@ export const EachMomentsandGenres = ({text, color, showLeftColor, style}) => {
       )}
       <PlainText
         text={text}
-        style={{opacity: 0.9, color: theme.colors.textDark}}
+        style={{opacity: 0.9, color: theme.colors.textWhite}}
       />
     </Pressable>
   );

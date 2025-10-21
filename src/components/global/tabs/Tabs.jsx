@@ -10,6 +10,7 @@ function Tabs({tabs, state, setState}) {
         flexWrap: 'wrap',
         gap: 0,
         paddingHorizontal: 20,
+        paddingVertical: 10,
       }}>
       {tabs.map((e, i) => {
         if (state === i) {

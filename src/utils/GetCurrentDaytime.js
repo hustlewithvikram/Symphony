@@ -25,9 +25,9 @@ export function GetCurrentDaytime(messages = {}) {
   else { current = { text: 'Good Vibes', icon: 'mood' }; }
 
   return (
-    <Text style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: theme.colors.textDark }}>
+    <Text style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: theme.colors.textWhite }}>
       {current.text} {' '}
-      <MaterialIcons name={current.icon} size={10} color="#000" />
+      <MaterialIcons name={current.icon} size={10} color={theme.colors.textWhite} />
     </Text>
   );
 }

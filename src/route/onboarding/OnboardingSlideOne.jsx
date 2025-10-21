@@ -8,16 +8,16 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import {Heading} from '../../components/global/Heading';
-import {PlainText} from '../../components/global/PlainText';
-import {BottomNextAndPrevious} from '../../components/routeonboarding/BottomNextAndPrevious';
 import {useState} from 'react';
 import {DefaultTheme} from '@react-navigation/native';
+import {Text, Button, useTheme} from 'react-native-paper';
+import {useAppTheme} from '../../theme';
 
-const {height} = Dimensions.get('window');
+const {height, width} = Dimensions.get('window');
 
 export const OnboardingSlideOne = ({navigation}) => {
   const [loading, setLoading] = useState(true);
+  const theme = useAppTheme();
 
   const handleNextPress = () => {
     navigation.push('OnboardingSlideTwo');
@@ -25,52 +25,140 @@ export const OnboardingSlideOne = ({navigation}) => {
 
   return (
     <MainWrapper>
-      {/* Transparent StatusBar */}
       <StatusBar
         translucent
         backgroundColor="transparent"
-        barStyle="dark-content"
+        barStyle="light-content"
       />
       <View style={styles.container}>
-        {/* Top Image */}
-        <View style={styles.imageContainer}>
+        {/* Hero Image Section */}
+        <View style={styles.heroContainer}>
           {loading && (
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="#fff" />
+              <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
           )}
           <FastImage
             source={{
-              uri: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
+              uri: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&w=800&q=80',
             }}
-            style={styles.image}
+            style={styles.heroImage}
             resizeMode={FastImage.resizeMode.cover}
             onLoadStart={() => setLoading(true)}
             onLoadEnd={() => setLoading(false)}
           />
+          {/* Gradient Overlay */}
+          <View
+            style={[
+              styles.gradientOverlay,
+              {
+                backgroundColor: theme.colors.surface,
+              },
+            ]}
+          />
         </View>
 
-        {/* Bottom Section */}
-        <View style={styles.bottomContainer}>
-          <View style={styles.textContainer}>
-            <Heading
-              text="Welcome to Symphony"
-              noSpace
-              style={styles.heading}
+        {/* Bottom Content Section */}
+        <View
+          style={[
+            styles.contentSection,
+            {
+              backgroundColor: theme.colors.surface,
+            },
+          ]}>
+          <View style={styles.contentContainer}>
+            {/* Decorative Element */}
+            <View
+              style={[
+                styles.decorativeLine,
+                {
+                  backgroundColor: theme.colors.primary,
+                },
+              ]}
             />
-            <PlainText
-              text="Experience music like never before - completely free"
-              style={styles.subtitle}
-            />
-          </View>
 
-          {/* Navigation Button */}
-          <BottomNextAndPrevious
-            delay={0}
-            onNextPress={handleNextPress}
-            showPrevious={false}
-            showNext={true}
-          />
+            {/* Text Content */}
+            <View style={styles.textContent}>
+              <Text
+                variant="labelLarge"
+                style={[
+                  styles.pretitle,
+                  {
+                    color: theme.colors.primary,
+                    backgroundColor: theme.colors.primaryContainer + '20',
+                  },
+                ]}>
+                GET STARTED
+              </Text>
+              <Text
+                variant="displaySmall"
+                style={[
+                  styles.title,
+                  {
+                    color: theme.colors.onSurface,
+                  },
+                ]}>
+                Welcome to{'\n'}Symphony
+              </Text>
+              <Text
+                variant="bodyLarge"
+                style={[
+                  styles.subtitle,
+                  {
+                    color: theme.colors.onSurfaceVariant,
+                  },
+                ]}>
+                Experience music in a whole new way with personalized streaming
+                and curated playlists
+              </Text>
+            </View>
+
+            {/* Action Button */}
+            <View style={styles.actionContainer}>
+              <Button
+                mode="elevated"
+                onPress={handleNextPress}
+                style={[
+                  styles.button,
+                  {
+                    backgroundColor: theme.colors.primary,
+                  },
+                ]}
+                contentStyle={styles.buttonContent}
+                labelStyle={(styles.buttonLabel, {color: theme.colors.text})}
+                icon="arrow-right">
+                Continue
+              </Button>
+
+              {/* Progress Indicator */}
+              <View style={styles.progressContainer}>
+                <View
+                  style={[
+                    styles.progressDot,
+                    {
+                      backgroundColor: theme.colors.primary,
+                    },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.progressDot,
+                    {
+                      backgroundColor: theme.colors.outline,
+                    },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.progressDot,
+                    {
+                      backgroundColor: theme.colors.outline,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
         </View>
       </View>
     </MainWrapper>
@@ -80,55 +168,105 @@ export const OnboardingSlideOne = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
-    backgroundColor: DefaultTheme.colors.background,
+    backgroundColor: '#000',
+  },
+  heroContainer: {
+    height: height * 0.55,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    width: '100%',
     height: '100%',
   },
-  imageContainer: {
-    height: height * 0.65,
-    overflow: 'hidden',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    backgroundColor: '#ccc',
-    marginHorizontal: 20,
-    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 40,
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.1,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  image: {
-    height: '100%',
+  contentSection: {
+    flex: 1,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    marginTop: -24,
+    paddingTop: 32,
   },
-  bottomContainer: {
+  contentContainer: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingVertical: 16,
-    justifyContent: 'space-between',
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
   },
-  textContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  decorativeLine: {
+    width: 32,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 32,
+  },
+  textContent: {
     alignItems: 'center',
-    gap: 12,
-    color: DefaultTheme.colors.text,
+    marginBottom: 48,
+    gap: 16,
   },
-  heading: {
-    textAlign: 'center',
-    fontSize: 26,
+  pretitle: {
     fontWeight: '700',
-    color: DefaultTheme.colors.text,
+    letterSpacing: 1.2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  title: {
+    textAlign: 'center',
+    fontWeight: '700',
+    lineHeight: 40,
+    letterSpacing: -0.5,
   },
   subtitle: {
     textAlign: 'center',
+    lineHeight: 24,
+    letterSpacing: 0.2,
+    opacity: 0.9,
+    paddingHorizontal: 8,
+  },
+  actionContainer: {
+    marginTop: 'auto',
+    alignItems: 'center',
+    gap: 32,
+  },
+  button: {
+    borderRadius: 20,
+    minWidth: width * 0.6,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  buttonContent: {
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+  },
+  buttonLabel: {
     fontSize: 16,
-    opacity: 0.85,
-    lineHeight: 22,
-    color: DefaultTheme.colors.text,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

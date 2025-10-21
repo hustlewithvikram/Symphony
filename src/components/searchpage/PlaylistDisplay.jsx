@@ -12,6 +12,7 @@ export default function PlaylistDisplay({data, limit, Searchtext}) {
   const totalPages = Math.ceil(Data?.data?.total ?? 1 / limit);
   const [Page, setPage] = useState(1);
   const [Loading, setLoading] = useState(false);
+
   async function fetchSearchData(text, page) {
     if (Page <= totalPages) {
       if (Searchtext !== '') {
@@ -32,8 +33,9 @@ export default function PlaylistDisplay({data, limit, Searchtext}) {
   }
 
   const width = Dimensions.get('window').width;
+
   return (
-    <>
+    <View style={{height: '100%'}}>
       {Data?.data?.results?.length !== 0 && (
         <FlatList
           showsVerticalScrollIndicator={false}
@@ -85,6 +87,6 @@ export default function PlaylistDisplay({data, limit, Searchtext}) {
           <SmallText text={'Opps!  T_T'} />
         </View>
       )}
-    </>
+    </View>
   );
 }

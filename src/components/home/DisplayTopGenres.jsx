@@ -35,7 +35,7 @@ export const DisplayTopGenres = memo(() => {
             paddingLeft: 15,
             borderRadius: 100000,
             backgroundColor: theme.colors.primary,
-            color: theme.colors.text,
+            color: theme.colors.textWhite,
           }}
         />
       ))}

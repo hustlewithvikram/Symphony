@@ -55,6 +55,7 @@ export default function BottomTabBar({state, descriptors, navigation}) {
                   borderRadius: 20,
                   height: 40,
                 }}>
+                {/* icon */}
                 {!isFocused && (
                   <View
                     style={{
@@ -77,6 +78,7 @@ export default function BottomTabBar({state, descriptors, navigation}) {
                     </Text>
                   </View>
                 )}
+                {/* label */}
                 {isFocused && (
                   <Animated.View
                     entering={FadeInUp}

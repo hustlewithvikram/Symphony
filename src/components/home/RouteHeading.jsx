@@ -31,14 +31,14 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
           <Text
             style={{
               fontWeight: 900,
-              color: theme.colors.text,
+              color: theme.colors.textWhite,
               fontSize: width * 0.055,
               fontFamily: 'roboto',
             }}>{`Hey, ${userName}`}</Text>
           <Text
             style={{
               fontWeight: 400,
-              color: theme.colors.text,
+              color: theme.colors.textWhite,
               fontSize: width * 0.04,
               fontFamily: 'roboto',
             }}>
@@ -61,7 +61,7 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
             <Feather
               name={'search'}
               size={width * 0.055}
-              color={theme.colors.textDark}
+              color={theme.colors.textWhite}
             />
           </Pressable>
         )}
@@ -81,7 +81,7 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
             <SimpleLineIcons
               name={'settings'}
               size={width * 0.055}
-              color={theme.colors.text}
+              color={theme.colors.textWhite}
             />
           </Pressable>
         )}

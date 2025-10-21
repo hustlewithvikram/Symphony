@@ -14,6 +14,7 @@ import FormatTitleAndArtist from '../../utils/FormatTitleAndArtist';
 import FormatArtist from '../../utils/FormatArtists';
 import {EachSongMenuButton} from '../musicplayer/EachSongMenuButton';
 import {useAppTheme} from '../../theme';
+import Animated from 'react-native-reanimated';
 
 export const EachSongCard = memo(function EachSongCard({
   title,
@@ -113,7 +114,7 @@ export const EachSongCard = memo(function EachSongCard({
   const isPaused = currentPlaying?.id === id && playerState.state !== 'playing';
 
   return (
-    <View
+    <Animated.View
       style={{
         flexDirection: 'row',
         width: width + 30 || screenWidth,
@@ -158,7 +159,7 @@ export const EachSongCard = memo(function EachSongCard({
             ellipsizeMode="tail"
             style={{
               width: titleandartistwidth || screenWidth * 0.65,
-              color: theme.colors.text,
+              color: theme.colors.textWhite,
             }}
           />
         </View>
@@ -177,6 +178,6 @@ export const EachSongCard = memo(function EachSongCard({
           })
         }
       />
-    </View>
+    </Animated.View>
   );
 });

@@ -1,24 +1,59 @@
-import Animated, {FadeIn, FadeOut, ZoomIn} from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  ZoomIn,
+  SlideInDown,
+  SlideOutDown,
+  LinearTransition,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import {View, Image, StyleSheet, Dimensions, Text} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import {useEffect} from 'react';
 import {GetLanguageValue} from '../localstorage/Languages';
 import {MainWrapper} from '../layout/MainWrapper';
+import {useAppTheme} from '../theme';
 
 const {width, height} = Dimensions.get('window');
 
 export const SplashScreen = ({navigation}) => {
-  const theme = useTheme();
+  const theme = useAppTheme();
+  const dotPosition = useSharedValue(0);
+
+  // Animated dot movement
+  useEffect(() => {
+    dotPosition.value = withRepeat(
+      withSequence(
+        withTiming(0, {duration: 600}),
+        withTiming(70, {duration: 600}), // 80px container width - 30% dot width = 56px movement
+      ),
+      -1, // infinite repeats
+      true, // reverse
+    );
+  }, [dotPosition]);
+
+  const animatedDotStyle = useAnimatedStyle(() => ({
+    transform: [{translateX: dotPosition.value}],
+  }));
 
   // Initial navigation logic
   const navigateNext = async () => {
-    const lang = await GetLanguageValue();
-    navigation.replace(lang ? 'MainRoute' : 'Onboarding');
+    try {
+      const lang = await GetLanguageValue();
+      navigation.replace(lang ? 'MainRoute' : 'Onboarding');
+    } catch (error) {
+      console.error('Navigation error:', error);
+      navigation.replace('Onboarding'); // Fallback
+    }
   };
 
   // Run once on mount
   useEffect(() => {
-    const timer = setTimeout(navigateNext, 1500); // Increased delay to show the full animation
+    const timer = setTimeout(navigateNext, 2500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -27,62 +62,82 @@ export const SplashScreen = ({navigation}) => {
     <MainWrapper>
       <View
         style={[styles.container, {backgroundColor: theme.colors.background}]}>
-        {/* Logo/Brand Image */}
+        {/* Logo/Brand Image with enhanced animation */}
         <Animated.View
-          entering={ZoomIn.duration(600).springify()}
-          exiting={FadeOut.duration(300)}
+          entering={ZoomIn.duration(800)
+            .springify()
+            .damping(12)
+            .mass(0.8)
+            .stiffness(120)}
+          exiting={FadeOut.duration(400)}
           style={styles.logoContainer}>
           <Image
             source={require('../assets/images/symphony.png')}
             style={styles.logo}
             resizeMode="contain"
           />
+          {/* Glow effect */}
+          <View
+            style={[
+              styles.glowEffect,
+              {backgroundColor: theme.colors.primary + '20'},
+            ]}
+          />
         </Animated.View>
 
-        {/* Content */}
+        {/* Content with staggered animations */}
         <View style={styles.content}>
           <Animated.Text
-            entering={FadeIn.duration(500).delay(200)}
-            exiting={FadeOut.duration(250)}
+            entering={FadeIn.duration(600).delay(300)}
+            exiting={FadeOut.duration(300)}
             style={[styles.title, {color: theme.colors.text}]}>
             Symphony
           </Animated.Text>
 
           <Animated.Text
-            entering={FadeIn.duration(500).delay(400)}
-            exiting={FadeOut.duration(250)}
+            entering={FadeIn.duration(600).delay(500)}
+            exiting={FadeOut.duration(300)}
             style={[styles.subtitle, {color: theme.colors.primary}]}>
             Music for free
           </Animated.Text>
 
-          {/* Loading indicator */}
+          {/* Enhanced loading indicator */}
           <Animated.View
-            entering={FadeIn.duration(400).delay(600)}
-            exiting={FadeOut.duration(200)}
+            entering={FadeIn.duration(500).delay(700)}
+            exiting={FadeOut.duration(250)}
             style={styles.loadingContainer}>
-            <View
-              style={[
-                styles.loadingDotsContainer,
-                {backgroundColor: theme.colors.border},
-              ]}>
-              <Animated.View
+            <View style={styles.loadingContent}>
+              <View
                 style={[
-                  styles.loadingDot,
-                  {backgroundColor: theme.colors.primary},
-                ]}
-              />
+                  styles.loadingDotsContainer,
+                  {backgroundColor: theme.colors.surfaceVariant},
+                ]}>
+                <Animated.View
+                  style={[
+                    styles.loadingDot,
+                    {backgroundColor: theme.colors.primary},
+                    animatedDotStyle,
+                  ]}
+                />
+              </View>
+              <Text style={[styles.loadingText, {color: theme.colors.text}]}>
+                Loading your experience...
+              </Text>
             </View>
           </Animated.View>
         </View>
 
-        {/* Footer */}
+        {/* Footer with slide animation */}
         <Animated.View
-          entering={FadeIn.duration(400).delay(800)}
-          exiting={FadeOut.duration(200)}
+          entering={SlideInDown.duration(600).delay(900)}
+          exiting={SlideOutDown.duration(400)}
           style={styles.footer}>
           <Text style={[styles.footerText, {color: theme.colors.text}]}>
             Your musical journey begins here
           </Text>
+          <View
+            style={[styles.footerLine, {backgroundColor: theme.colors.primary}]}
+          />
         </Animated.View>
       </View>
     </MainWrapper>
@@ -94,67 +149,92 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: height * 0.1,
+    paddingVertical: height * 0.08,
   },
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: height * 0.1,
+    marginTop: height * 0.12,
+    position: 'relative',
   },
   logo: {
-    width: width * 0.4,
-    height: width * 0.4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
+    width: width * 0.35,
+    height: width * 0.35,
+    zIndex: 2,
+  },
+  glowEffect: {
+    position: 'absolute',
+    width: width * 0.5,
+    height: width * 0.5,
+    borderRadius: width * 0.25,
+    opacity: 0.4,
+    blurRadius: 20,
   },
   content: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    gap: 12,
   },
   title: {
-    fontSize: 48,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: {width: 0, height: 2},
-    textShadowRadius: 4,
+    fontSize: 52,
+    fontWeight: '900',
+    letterSpacing: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: {width: 0, height: 3},
+    textShadowRadius: 6,
+    includeFontPadding: false,
   },
   subtitle: {
-    fontSize: 18,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-    opacity: 0.9,
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    opacity: 0.95,
+    includeFontPadding: false,
   },
   loadingContainer: {
-    marginTop: 40,
+    marginTop: 48,
     alignItems: 'center',
+  },
+  loadingContent: {
+    alignItems: 'center',
+    gap: 16,
   },
   loadingDotsContainer: {
     width: 80,
-    height: 4,
-    borderRadius: 2,
+    height: 5,
+    borderRadius: 3,
     overflow: 'hidden',
+    opacity: 0.8,
   },
   loadingDot: {
     height: '100%',
     width: '30%',
-    borderRadius: 2,
+    borderRadius: 3,
   },
-  footer: {
-    paddingBottom: 30,
-  },
-  footerText: {
+  loadingText: {
     fontSize: 14,
     opacity: 0.7,
-    fontWeight: '400',
-    letterSpacing: 0.3,
+    fontWeight: '500',
+    letterSpacing: 0.4,
+    includeFontPadding: false,
+  },
+  footer: {
+    paddingBottom: 40,
+    alignItems: 'center',
+    gap: 12,
+  },
+  footerText: {
+    fontSize: 15,
+    opacity: 0.8,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+    includeFontPadding: false,
+  },
+  footerLine: {
+    width: 40,
+    height: 3,
+    borderRadius: 2,
+    opacity: 0.7,
   },
 });

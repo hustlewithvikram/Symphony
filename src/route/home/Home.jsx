@@ -92,7 +92,7 @@ export const Home = () => {
           contentContainerStyle={{
             paddingBottom: 90,
             paddingTop: 40,
-            backgroundColor: theme.colors.tertiary,
+            backgroundColor: theme.colors.primaryDark,
           }}>
           <RouteHeading showSearch showSettings />
           <DisplayTopGenres />

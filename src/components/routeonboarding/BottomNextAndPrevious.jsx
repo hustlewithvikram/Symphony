@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     marginHorizontal: 5,
-    marginVertical: 24,
+    // marginVertical: 24,
     justifyContent: 'flex-end',
     alignItems: 'center',
     // backgroundColor: 'red',

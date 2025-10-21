@@ -2,11 +2,19 @@ import {MainWrapper} from '../../layout/MainWrapper';
 import {EachLibraryCard} from '../../components/library/EachLibraryCard';
 import {Dimensions, ScrollView, View} from 'react-native';
 import {RouteHeading} from '../../components/home/RouteHeading';
+import {useAppTheme} from '../../theme';
 
 export const Library = () => {
   const width = Dimensions.get('window').width;
+  const theme = useAppTheme();
+
   return (
-    <MainWrapper>
+    <View
+      style={{
+        backgroundColor: theme.colors.primaryDark,
+        paddingTop: 40,
+        height: '100%',
+      }}>
       <RouteHeading bottomText={'Your Library'} />
       <ScrollView>
         <View
@@ -34,6 +42,6 @@ export const Library = () => {
           <View style={{width: width * 0.45}} />
         </View>
       </ScrollView>
-    </MainWrapper>
+    </View>
   );
 };

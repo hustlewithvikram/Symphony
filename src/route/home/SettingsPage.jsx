@@ -29,16 +29,20 @@ import {Spacer} from '../../components/global/Spacer';
 import {useAppTheme} from '../../theme';
 
 // Memoized components with improved styling
-const SettingsCard = memo(({children, title}) => (
-  <View style={styles.card}>
-    {title && (
-      <View style={styles.cardHeader}>
-        <PlainText text={title} style={styles.cardTitle} />
-      </View>
-    )}
-    {children}
-  </View>
-));
+const SettingsCard = memo(({children, title}) => {
+  const theme = useAppTheme();
+
+  return (
+    <View style={[styles.card, {backgroundColor: theme.colors.primary}]}>
+      {title && (
+        <View style={styles.cardHeader}>
+          <PlainText text={title} style={styles.cardTitle} />
+        </View>
+      )}
+      {children}
+    </View>
+  );
+});
 
 const SettingsButton = memo(({text, onPress, icon, description, isLast}) => (
   <Pressable
@@ -226,12 +230,12 @@ export const SettingsPage = ({navigation}) => {
   }, []);
 
   return (
-    <MainWrapper>
+    <View style={{backgroundColor: theme.colors.primaryDark}}>
       <PaddingConatiner>
         <View style={styles.header}>
           <Heading
             text="Settings"
-            style={(styles.heading, {color: theme.colors.textDark})}
+            style={(styles.heading, {color: theme.colors.textWhite})}
           />
           <SmallText
             text="Customize your app experience"
@@ -351,7 +355,7 @@ export const SettingsPage = ({navigation}) => {
           </View>
         </ScrollView>
       </PaddingConatiner>
-    </MainWrapper>
+    </View>
   );
 };
 

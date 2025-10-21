@@ -14,7 +14,6 @@ export const RouteOnboarding = () => {
         name="OnboardingSlideThree"
         component={OnboardingSlideThree}
       />
-      {/*<Stack.Screen  name="Slide4" component={Slide4} />*/}
     </Stack.Navigator>
   );
 };

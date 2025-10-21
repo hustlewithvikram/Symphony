@@ -19,7 +19,7 @@ export const EachSongMenuButton = ({Onpress}) => {
       <Entypo
         name={'dots-three-vertical'}
         size={17}
-        color={theme.colors.textDark}
+        color={theme.colors.textWhite}
       />
     </Pressable>
   );

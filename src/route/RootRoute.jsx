@@ -32,6 +32,7 @@ export const RootRoute = () => {
             borderColor: 'rgba(28,27,27,0)',
           },
         }}>
+        {/* home */}
         <Tab.Screen
           options={{
             // eslint-disable-next-line react/no-unstable-nested-components
@@ -43,6 +44,7 @@ export const RootRoute = () => {
           name="Home"
           component={HomeRoute}
         />
+        {/* discover */}
         <Tab.Screen
           options={{
             // eslint-disable-next-line react/no-unstable-nested-components
@@ -53,6 +55,7 @@ export const RootRoute = () => {
           name="Discover"
           component={DiscoverRoute}
         />
+        {/* library */}
         <Tab.Screen
           options={{
             // eslint-disable-next-line react/no-unstable-nested-components

@@ -48,7 +48,7 @@ export default function AlbumsDisplay({data, limit, Searchtext}) {
   const GAP = 12; // adjust gap between cards
 
   return (
-    <>
+    <View>
       {Data?.data?.results?.length !== 0 && (
         <FlatList
           showsVerticalScrollIndicator={false}
@@ -98,6 +98,6 @@ export default function AlbumsDisplay({data, limit, Searchtext}) {
           <SmallText text={'Opps!  T_T'} />
         </View>
       )}
-    </>
+    </View>
   );
 }

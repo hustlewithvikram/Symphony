@@ -2,10 +2,12 @@ import {Dimensions, Pressable, Text, View} from 'react-native';
 import Animated, {ZoomIn, ZoomOut} from 'react-native-reanimated';
 import {memo} from 'react';
 import {useTheme} from '@react-navigation/native';
+import {useAppTheme} from '../../../theme';
 
 function EachTabs({item, isActive, index, setActive}) {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const width = Dimensions.get('window').width;
+
   return (
     <Pressable
       style={{padding: 7, alignItems: 'center'}}
@@ -20,7 +22,7 @@ function EachTabs({item, isActive, index, setActive}) {
           }}>
           <Text
             style={{
-              color: theme.colors.textSecondary,
+              color: theme.colors.textWhite,
               fontSize: width * 0.04,
               fontFamily: 'roboto',
               fontWeight: 700,
@@ -41,7 +43,7 @@ function EachTabs({item, isActive, index, setActive}) {
           }}>
           <Text
             style={{
-              color: isActive ? 'white' : theme.colors.textSecondary,
+              color: isActive ? 'white' : theme.colors.textWhite,
               fontSize: width * 0.04,
               fontFamily: 'roboto',
               fontWeight: 400,
