@@ -1,11 +1,29 @@
-import React, {memo, useContext} from 'react';
+import React, {memo, useContext, useCallback} from 'react';
 import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 import {EachSongQueue} from './EachSongQueue';
 import Context from '../../context/Context';
 
-export const QueueRenderSongs = memo(function QueueRenderSongs({Index}) {
-  // const  Queue } = useContext(Context)
+export const QueueRenderSongs = memo(function QueueRenderSongs() {
   const {Queue} = useContext(Context);
+
+  const renderItem = useCallback(
+    ({item, index}) => (
+      <EachSongQueue
+        title={item.title}
+        artist={item.artist}
+        id={item.id}
+        index={index}
+        image={item.artwork}
+      />
+    ),
+    [],
+  );
+
+  const keyExtractor = useCallback(
+    (item, index) => (item.id ? item.id.toString() : `queue-${index}`),
+    [],
+  );
+
   return (
     <BottomSheetFlatList
       contentContainerStyle={{
@@ -14,16 +32,8 @@ export const QueueRenderSongs = memo(function QueueRenderSongs({Index}) {
         paddingRight: 60,
       }}
       data={Queue}
-      renderItem={item => (
-        <EachSongQueue
-          title={item.item.title}
-          key={item.index + Math.random() + Math.random()}
-          artist={item.item.artist}
-          id={item.item.id}
-          index={item.index}
-          image={item.item.artwork}
-        />
-      )}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
     />
   );
 });

@@ -5,6 +5,7 @@ import {SmallText} from '../global/SmallText';
 import {memo} from 'react';
 import {useActiveTrack, usePlaybackState} from 'react-native-track-player';
 import {SkipToTrack} from '../../../MusicPlayerFunctions';
+import {useAppTheme} from '../../theme';
 
 export const EachSongQueue = memo(function EachSongQueue({
   title,
@@ -15,6 +16,8 @@ export const EachSongQueue = memo(function EachSongQueue({
 }) {
   const playerState = usePlaybackState();
   const currentPlaying = useActiveTrack();
+  const theme = useAppTheme();
+
   return (
     <Pressable
       onPress={() => {

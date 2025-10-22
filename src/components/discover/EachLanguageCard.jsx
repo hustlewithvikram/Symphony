@@ -1,9 +1,13 @@
 import {Pressable} from 'react-native';
 import {PlainText} from '../global/PlainText';
 import {useNavigation} from '@react-navigation/native';
+import {useAppTheme} from '../../theme';
+import {Text} from 'react-native-paper';
 
 export const EachLanguageCard = ({language}) => {
   const navigation = useNavigation();
+  const theme = useAppTheme();
+
   return (
     <Pressable
       onPress={() => {
@@ -18,7 +22,9 @@ export const EachLanguageCard = ({language}) => {
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-      <PlainText text={language} style={{paddingRight: 0}} />
+      <Text style={{paddingRight: 0, color: theme.colors.textWhite}}>
+        {language}
+      </Text>
     </Pressable>
   );
 };

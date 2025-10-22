@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useAppTheme } from '../theme';
 
@@ -25,9 +25,9 @@ export function GetCurrentDaytime(messages = {}) {
   else { current = { text: 'Good Vibes', icon: 'mood' }; }
 
   return (
-    <Text style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: theme.colors.textWhite }}>
+    <Text style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: theme.colors.text }}>
       {current.text} {' '}
-      <MaterialIcons name={current.icon} size={10} color={theme.colors.textWhite} />
+      <MaterialIcons name={current.icon} size={20} color={theme.colors.text} />
     </Text>
   );
 }

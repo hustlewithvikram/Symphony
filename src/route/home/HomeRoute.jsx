@@ -22,7 +22,13 @@ export const HomeRoute = () => {
       <Stack.Screen name="Search" component={SearchPage} />
       <Stack.Screen name={'LikedSongs'} component={LikedSongPage} />
       <Stack.Screen name={'LikedPlaylists'} component={LikedPlaylistPage} />
-      <Stack.Screen name={'Settings'} component={SettingsPage} />
+      <Stack.Screen
+        name={'Settings'}
+        component={SettingsPage}
+        options={{
+          tabBarStyle: {display: 'none'},
+        }}
+      />
       <Stack.Screen name={'ChangeName'} component={ChangeName} />
       <Stack.Screen name={'SelectLanguages'} component={SelectLanguages} />
       <Stack.Screen name="ShowPlaylistofType" component={ShowPlaylistofType} />

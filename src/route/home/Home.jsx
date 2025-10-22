@@ -13,6 +13,7 @@ import {EachPlaylistCard} from '../../components/global/EachPlaylistCard';
 import {GetLanguageValue} from '../../localstorage/Languages';
 import {DisplayTopGenres} from '../../components/home/DisplayTopGenres';
 import {useAppTheme} from '../../theme';
+import BottomSheetMusic from '../../components/musicplayer/BottomSheetMusic';
 
 export const Home = () => {
   const [loading, setLoading] = useState(true);
@@ -57,26 +58,30 @@ export const Home = () => {
     />
   );
 
-  const renderHorizontalPlaylists = playlists => (
-    <FlatList
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{paddingLeft: 20, gap: 12}}
-      data={playlists ?? []}
-      renderItem={({item}) => (
-        <EachPlaylistCard
-          key={item.id}
-          id={item.id}
-          name={item.title}
-          follower={item.subtitle}
-          image={item.image[2]?.link}
-        />
-      )}
-    />
-  );
+  const renderHorizontalPlaylists = playlists => {
+    console.log('playlist songs::', playlists);
+    return (
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{paddingLeft: 20, gap: 12}}
+        data={playlists ?? []}
+        renderItem={({item}) => (
+          <EachPlaylistCard
+            key={item.id}
+            id={item.id}
+            name={item.title}
+            follower={item.subtitle}
+            image={item.image[2]?.link}
+          />
+        )}
+      />
+    );
+  };
 
   return (
     <MainWrapper>
+      <BottomSheetMusic />
       <View style={{flex: 1}}>
         <ScrollView
           style={{zIndex: -1}}
@@ -92,14 +97,16 @@ export const Home = () => {
           contentContainerStyle={{
             paddingBottom: 90,
             paddingTop: 40,
-            backgroundColor: theme.colors.primaryDark,
+            backgroundColor: theme.colors.background,
           }}>
           <RouteHeading showSearch showSettings />
+
+          {/* top genre chips */}
           <DisplayTopGenres />
 
+          {/* most searched songs */}
           <PaddingConatiner>
             <HorizontalScrollSongs id={data.data.charts[0]?.id} />
-            <Heading text="Recommended" />
           </PaddingConatiner>
 
           {renderHorizontalPlaylists(data.data.playlists)}

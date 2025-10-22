@@ -3,9 +3,10 @@ import {useTheme} from '@react-navigation/native';
 import {Spacer} from './Spacer';
 import {useEffect, useState} from 'react';
 import {GetFontSizeValue} from '../../localstorage/AppSettings';
+import {useAppTheme} from '../../theme';
 
 export const Heading = ({text, style, nospace}) => {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const width = Dimensions.get('window').width;
   const [Size, setSize] = useState(width * 0.055);
 

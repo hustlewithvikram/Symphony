@@ -6,6 +6,7 @@ import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import {GetCurrentDaytime} from '../../utils/GetCurrentDaytime';
 import {useGetUserName} from '../../hooks/useGetUserName';
 import {useAppTheme} from '../../theme';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
   const userName = useGetUserName();
@@ -31,14 +32,14 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
           <Text
             style={{
               fontWeight: 900,
-              color: theme.colors.textWhite,
+              color: theme.colors.text,
               fontSize: width * 0.055,
               fontFamily: 'roboto',
             }}>{`Hey, ${userName}`}</Text>
           <Text
             style={{
               fontWeight: 400,
-              color: theme.colors.textWhite,
+              color: theme.colors.text,
               fontSize: width * 0.04,
               fontFamily: 'roboto',
             }}>
@@ -60,8 +61,8 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
             }}>
             <Feather
               name={'search'}
-              size={width * 0.055}
-              color={theme.colors.textWhite}
+              size={width * 0.065}
+              color={theme.colors.text}
             />
           </Pressable>
         )}
@@ -78,10 +79,10 @@ export const RouteHeading = ({bottomText, showSearch, showSettings}) => {
               backgroundColor: 'rgba(0,0,0,0)',
               borderRadius: 10,
             }}>
-            <SimpleLineIcons
+            <Feather
               name={'settings'}
-              size={width * 0.055}
-              color={theme.colors.textWhite}
+              size={width * 0.065}
+              color={theme.colors.text}
             />
           </Pressable>
         )}

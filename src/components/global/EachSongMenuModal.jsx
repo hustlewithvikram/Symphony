@@ -1,36 +1,59 @@
-import Modal from 'react-native-modal';
+import React, {useContext, memo, useCallback, useState} from 'react';
 import {
   Dimensions,
   PermissionsAndroid,
   Platform,
-  Pressable,
   ToastAndroid,
   View,
 } from 'react-native';
+import {
+  Portal,
+  Dialog,
+  Button,
+  IconButton,
+  List,
+  Chip,
+  ProgressBar,
+  useTheme,
+  Text,
+} from 'react-native-paper';
 import FastImage from 'react-native-fast-image';
-import React, {useContext} from 'react';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
+
 import Context from '../../context/Context';
 import {GetDownloadPath} from '../../localstorage/AppSettings';
 import FormatTitleAndArtist from '../../utils/FormatTitleAndArtist';
 import {AddSongsToQueue, getIndexQuality} from '../../../MusicPlayerFunctions';
-import {Spacer} from './Spacer';
-import {PlainText} from './PlainText';
-import {SmallText} from './SmallText';
+import {useAppTheme} from '../../theme';
 
-export const EachSongMenuModal = ({Visible, setVisible}) => {
+const MemoizedFastImage = memo(FastImage);
+
+export const EachSongMenuModal = memo(({Visible, setVisible}) => {
+  const theme = useAppTheme();
   const {updateTrack} = useContext(Context);
-  async function actualDownload() {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+
+  const closeModal = useCallback(() => {
+    setVisible({visible: false});
+    setIsDownloading(false);
+    setDownloadProgress(0);
+  }, [setVisible]);
+
+  const actualDownload = useCallback(async () => {
+    setIsDownloading(true);
+    setDownloadProgress(0);
+
     let dirs = ReactNativeBlobUtil.fs.dirs;
     const path = await GetDownloadPath();
+
     ToastAndroid.showWithGravity(
       `Download Started`,
       ToastAndroid.SHORT,
       ToastAndroid.CENTER,
     );
+
     ReactNativeBlobUtil.config({
       addAndroidDownloads: {
         useDownloadManager: true,
@@ -46,6 +69,9 @@ export const EachSongMenuModal = ({Visible, setVisible}) => {
       fileCache: true,
     })
       .fetch('GET', Visible.url[4].url, {})
+      .progress((received, total) => {
+        setDownloadProgress(received / total);
+      })
       .then(res => {
         console.log('The file saved to ', res.path());
         ToastAndroid.showWithGravity(
@@ -53,11 +79,20 @@ export const EachSongMenuModal = ({Visible, setVisible}) => {
           ToastAndroid.SHORT,
           ToastAndroid.CENTER,
         );
+        closeModal();
+      })
+      .catch(error => {
+        console.error('Download failed:', error);
+        ToastAndroid.showWithGravity(
+          'Download failed',
+          ToastAndroid.SHORT,
+          ToastAndroid.CENTER,
+        );
+        setIsDownloading(false);
       });
-    setVisible({visible: false});
-  }
+  }, [Visible, closeModal]);
 
-  const getPermission = async () => {
+  const getPermission = useCallback(async () => {
     if (Platform.OS === 'ios') {
       actualDownload();
     } else {
@@ -74,145 +109,330 @@ export const EachSongMenuModal = ({Visible, setVisible}) => {
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           actualDownload();
         } else {
-          console.log('please grant permission');
+          ToastAndroid.showWithGravity(
+            'Storage permission required',
+            ToastAndroid.SHORT,
+            ToastAndroid.CENTER,
+          );
         }
       } catch (err) {
-        console.log('display error', err);
+        console.log('Permission error', err);
+        ToastAndroid.showWithGravity(
+          'Permission error occurred',
+          ToastAndroid.SHORT,
+          ToastAndroid.CENTER,
+        );
       }
     }
-  };
-  async function addSongToQueue() {
-    const quality = await getIndexQuality();
-    const song = {
-      url: Visible.url[quality].url,
-      title: FormatTitleAndArtist(Visible.title),
-      artist: FormatTitleAndArtist(Visible.artist),
-      artwork: Visible.image,
-      duration: Visible.duration,
-      id: Visible.id,
-      language: Visible.language,
-      image: Visible.image,
-      downloadUrl: Visible.url,
-    };
-    await AddSongsToQueue([song]);
-    updateTrack();
-    setVisible({visible: false});
-    ToastAndroid.showWithGravity(
-      `Song Added To Queue`,
-      ToastAndroid.SHORT,
-      ToastAndroid.CENTER,
-    );
-  }
-  const size = Dimensions.get('window').height;
+  }, [actualDownload]);
+
+  const addSongToQueue = useCallback(async () => {
+    try {
+      const quality = await getIndexQuality();
+      const song = {
+        url: Visible.url[quality].url,
+        title: FormatTitleAndArtist(Visible.title),
+        artist: FormatTitleAndArtist(Visible.artist),
+        artwork: Visible.image,
+        duration: Visible.duration,
+        id: Visible.id,
+        language: Visible.language,
+        image: Visible.image,
+        downloadUrl: Visible.url,
+      };
+      await AddSongsToQueue([song]);
+      updateTrack();
+      closeModal();
+      ToastAndroid.showWithGravity(
+        `Song Added To Queue`,
+        ToastAndroid.SHORT,
+        ToastAndroid.CENTER,
+      );
+    } catch (error) {
+      console.error('Error adding to queue:', error);
+      ToastAndroid.showWithGravity(
+        'Failed to add to queue',
+        ToastAndroid.SHORT,
+        ToastAndroid.CENTER,
+      );
+    }
+  }, [Visible, updateTrack, closeModal]);
+
+  const formatDuration = useCallback(duration => {
+    if (!duration) return '0:00';
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }, []);
+
   return (
-    <Modal
-      onBackButtonPress={() => setVisible({visible: false})}
-      onSwipeComplete={() => setVisible({visible: false})}
-      onBackdropPress={() => setVisible({visible: false})}
-      swipeDirection={['up', 'left', 'right', 'down']}
-      isVisible={Visible.visible}
-      style={{
-        justifyContent: 'flex-end',
-        margin: 0,
-      }}>
-      <View
+    <Portal>
+      <Dialog
+        visible={Visible.visible}
+        onDismiss={closeModal}
         style={{
-          backgroundColor: 'rgb(18,18,18)',
-          elevation: 10,
+          backgroundColor: theme.colors.surface,
+          borderRadius: 20,
+          margin: 20,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: {width: 0, height: 4},
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
         }}>
-        <Spacer />
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            paddingHorizontal: 15,
-            paddingTop: 5,
-            alignItems: 'center',
-            gap: 10,
-          }}>
+        <Dialog.Content style={{paddingHorizontal: 0}}>
+          {/* Header */}
+          <View style={{paddingHorizontal: 24, paddingBottom: 16}}>
+            <Text
+              variant="titleMedium"
+              style={{
+                color: theme.colors.onSurface,
+                fontWeight: 'bold',
+                // textAlign: 'center',
+              }}>
+              Song Options
+            </Text>
+          </View>
+
+          {/* Song Info with better layout */}
           <View
             style={{
               flexDirection: 'row',
-              flex: 1,
+              paddingHorizontal: 24,
+              paddingBottom: 20,
+              alignItems: 'center',
             }}>
-            <FastImage
+            <MemoizedFastImage
               source={{
                 uri:
-                  Visible.image ??
+                  Visible.image ||
                   'https://htmlcolorcodes.com/assets/images/colors/gray-color-solid-background-1920x1080.png',
               }}
               style={{
-                height: size * 0.1 - 30,
-                width: size * 0.1 - 30,
-                borderRadius: 10,
+                height: 70,
+                width: 70,
+                borderRadius: 12,
               }}
+              resizeMode="cover"
             />
-            <View
-              style={{
-                flex: 1,
-                height: size * 0.1 - 30,
-                alignItems: 'flex-start',
-                justifyContent: 'center',
-                paddingHorizontal: 10,
-              }}>
-              <PlainText
-                text={FormatTitleAndArtist(Visible?.title) ?? 'No music :('}
-                style={{color: 'white'}}
-              />
-              <SmallText
-                text={FormatTitleAndArtist(Visible?.artist) ?? 'Explore now!'}
-                maxLine={1}
-              />
+            <View style={{flex: 1, marginLeft: 16}}>
+              <Text
+                variant="bodyLarge"
+                numberOfLines={2}
+                style={{
+                  color: theme.colors.onSurface,
+                  fontWeight: 'bold',
+                  marginBottom: 4,
+                }}>
+                {FormatTitleAndArtist(Visible?.title) || 'No music :('}
+              </Text>
+              <Text
+                variant="bodyMedium"
+                numberOfLines={1}
+                style={{
+                  color: theme.colors.onSurfaceVariant,
+                  marginBottom: 8,
+                }}>
+                {FormatTitleAndArtist(Visible?.artist) || 'Explore now!'}
+              </Text>
+
+              {/* Metadata Row */}
+              <View style={{flexDirection: 'row', gap: 8}}>
+                {Visible.language && (
+                  <Chip
+                    mode="flat"
+                    compact
+                    style={{backgroundColor: theme.colors.surfaceVariant}}
+                    textStyle={{
+                      color: theme.colors.onPrimaryContainer,
+                      fontSize: 11,
+                    }}>
+                    {Visible.language}
+                  </Chip>
+                )}
+                {Visible.duration && (
+                  <Chip
+                    mode="flat"
+                    compact
+                    style={{backgroundColor: theme.colors.surfaceVariant}}
+                    textStyle={{
+                      color: theme.colors.onSurfaceVariant,
+                      fontSize: 11,
+                    }}
+                    iconColor={theme.colors.black}
+                    icon="clock-outline">
+                    {formatDuration(Visible.duration)}
+                  </Chip>
+                )}
+              </View>
             </View>
           </View>
-        </View>
-        <Spacer />
-        <View
-          style={{
-            flexDirection: 'row',
-            gap: 10,
-            paddingHorizontal: 10,
-          }}>
-          <EachModalButton
-            text={'Add to Queue'}
-            icon={
-              <MaterialCommunityIcons
-                name={'playlist-music-outline'}
-                size={25}
-                color={'white'}
+
+          {/* Download Progress */}
+          {isDownloading && (
+            <View style={{paddingHorizontal: 24, marginBottom: 16}}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
+                <Text
+                  variant="labelSmall"
+                  style={{color: theme.colors.onSurface}}>
+                  Downloading...
+                </Text>
+                <Text
+                  variant="labelSmall"
+                  style={{color: theme.colors.primary, fontWeight: 'bold'}}>
+                  {Math.round(downloadProgress * 100)}%
+                </Text>
+              </View>
+              <ProgressBar
+                progress={downloadProgress}
+                color={theme.colors.primary}
+                style={{height: 6, borderRadius: 3}}
               />
-            }
-            Onpress={addSongToQueue}
-          />
-          <EachModalButton
-            text={'Download'}
-            Onpress={getPermission}
-            icon={<AntDesign name={'download'} size={25} color={'white'} />}
-          />
-        </View>
-        <Spacer />
-        <Spacer />
-        <Spacer />
-      </View>
-    </Modal>
+            </View>
+          )}
+
+          {/* Main Action Buttons */}
+          <View style={{gap: 12, paddingHorizontal: 24, marginBottom: 20}}>
+            <Button
+              mode="contained"
+              icon="playlist-music"
+              onPress={addSongToQueue}
+              disabled={isDownloading}
+              contentStyle={{height: 50}}
+              labelStyle={{
+                color: theme.colors.onPrimary,
+                fontWeight: 'bold',
+                fontSize: 15,
+              }}
+              style={{borderRadius: 12}}>
+              Add to Queue
+            </Button>
+
+            <Button
+              mode="outlined"
+              icon={isDownloading ? 'progress-download' : 'download'}
+              onPress={getPermission}
+              disabled={isDownloading}
+              contentStyle={{height: 50}}
+              labelStyle={{
+                color: theme.colors.primary,
+                fontWeight: 'bold',
+                fontSize: 15,
+              }}
+              style={{
+                borderRadius: 12,
+                borderColor: theme.colors.primary,
+                borderWidth: 2,
+              }}>
+              {isDownloading ? 'Downloading...' : 'Download Song'}
+            </Button>
+          </View>
+
+          {/* Quick Actions */}
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              paddingHorizontal: 24,
+              marginBottom: 24,
+              paddingTop: 16,
+              borderTopWidth: 1,
+              borderTopColor: theme.colors.outlineVariant,
+            }}>
+            <View style={{alignItems: 'center'}}>
+              <IconButton
+                icon="heart-outline"
+                size={24}
+                mode="contained"
+                containerColor={theme.colors.background}
+                iconColor={theme.colors.primary}
+                onPress={() => {
+                  ToastAndroid.showWithGravity(
+                    'Added to favorites',
+                    ToastAndroid.SHORT,
+                    ToastAndroid.CENTER,
+                  );
+                }}
+              />
+              <Text
+                variant="labelSmall"
+                style={{color: theme.colors.onSurfaceVariant, marginTop: 4}}>
+                Favorite
+              </Text>
+            </View>
+
+            <View style={{alignItems: 'center'}}>
+              <IconButton
+                icon="playlist-plus"
+                size={24}
+                mode="contained"
+                containerColor={theme.colors.background}
+                iconColor={theme.colors.primary}
+                onPress={() => {
+                  ToastAndroid.showWithGravity(
+                    'Add to playlist',
+                    ToastAndroid.SHORT,
+                    ToastAndroid.CENTER,
+                  );
+                }}
+              />
+              <Text
+                variant="labelSmall"
+                style={{color: theme.colors.onSurfaceVariant, marginTop: 4}}>
+                Playlist
+              </Text>
+            </View>
+
+            <View style={{alignItems: 'center'}}>
+              <IconButton
+                icon="share"
+                size={24}
+                mode="contained"
+                containerColor={theme.colors.background}
+                iconColor={theme.colors.primary}
+                onPress={() => {
+                  ToastAndroid.showWithGravity(
+                    'Share feature coming soon',
+                    ToastAndroid.SHORT,
+                    ToastAndroid.CENTER,
+                  );
+                }}
+              />
+              <Text
+                variant="labelSmall"
+                style={{color: theme.colors.onSurfaceVariant, marginTop: 4}}>
+                Share
+              </Text>
+            </View>
+          </View>
+
+          {/* Close Button at Bottom */}
+          <View style={{paddingHorizontal: 24}}>
+            <Button
+              mode="text"
+              onPress={closeModal}
+              contentStyle={{height: 44}}
+              labelStyle={{
+                color: theme.colors.textWhite,
+                fontSize: 16,
+                fontWeight: '600',
+              }}
+              style={{
+                borderRadius: 999,
+                paddingHorizontal: 6,
+                paddingVertical: 4,
+                backgroundColor: theme.colors.primary,
+              }}>
+              Close
+            </Button>
+          </View>
+        </Dialog.Content>
+      </Dialog>
+    </Portal>
   );
-};
-function EachModalButton({icon, text, Onpress}) {
-  return (
-    <Pressable
-      onPress={() => Onpress()}
-      style={{
-        height: 100,
-        backgroundColor: 'rgb(41,47,49)',
-        borderRadius: 10,
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 5,
-      }}>
-      {icon}
-      <Spacer />
-      <PlainText text={text} style={{color: 'white', paddingRight: 0}} />
-    </Pressable>
-  );
-}
+});

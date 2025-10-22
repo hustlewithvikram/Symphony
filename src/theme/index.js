@@ -135,6 +135,13 @@ export const materialColorVars = (palette, isDark = false) => {
         textDark: isDark ? '#e6e1e5' : '#000000',
         textGray: isDark ? '#b0b0b0' : 'gray',
 
+        // normal colors
+        black: '#000000',
+        white: '#ffffff',
+
+        // white shades
+        powderWhite: '#FBFCFA',
+
         // Additional semantic colors
         success: isDark ? '#81c995' : '#2e7d32',
         warning: isDark ? '#ffb74d' : '#f57c00',

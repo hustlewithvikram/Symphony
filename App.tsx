@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
-import {Dimensions, ToastAndroid, StatusBar, View} from 'react-native';
-import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import {ToastAndroid, StatusBar} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
@@ -15,39 +15,12 @@ const Stack = createStackNavigator();
 const codePushOptions = {checkFrequency: CodePush.CheckFrequency.ON_APP_START};
 
 const App = () => {
-  const width = Dimensions.get('window').width;
-
-  const MyTheme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      primary: '#fb8500',
-      primaryLight: '#ffb347',
-      primaryDark: '#c15800',
-
-      secondary: '#219ebc',
-      secondaryLight: '#8ecae6',
-      secondaryDark: '#126782',
-
-      tertiary: '#023047',
-      tertiaryLight: '#3a506b',
-      tertiaryDark: '#011a26',
-
-      text: '#F4F5FC',
-      textSecondary: '#CCCCCC',
-      white: 'white',
-      spacing: 10,
-      headingSize: width * 0.085,
-      fontSize: width * 0.045,
-      disabled: 'rgb(131,131,131)',
-      background: 'transparent',
-    },
-  };
+  // const width = Dimensions.get('window').width;
 
   useEffect(() => {
     StatusBar.setTranslucent(true);
     StatusBar.setBackgroundColor('transparent');
-    StatusBar.setBarStyle('light-content');
+    StatusBar.setBarStyle('dark-content');
 
     // @ts-ignore
     CodePush.notifyAppReady();
@@ -68,14 +41,12 @@ const App = () => {
       <GestureHandlerRootView style={{flex: 1, backgroundColor: 'transparent'}}>
         <ContextState>
           <BottomSheetModalProvider>
-            <NavigationContainer theme={MyTheme}>
-              <View style={{flex: 1, backgroundColor: 'transparent'}}>
-                <Stack.Navigator screenOptions={{headerShown: false}}>
-                  <Stack.Screen name="SplashScreen" component={SplashScreen} />
-                  <Stack.Screen name="Onboarding" component={RouteOnboarding} />
-                  <Stack.Screen name="MainRoute" component={RootRoute} />
-                </Stack.Navigator>
-              </View>
+            <NavigationContainer>
+              <Stack.Navigator screenOptions={{headerShown: false}}>
+                <Stack.Screen name="SplashScreen" component={SplashScreen} />
+                <Stack.Screen name="Onboarding" component={RouteOnboarding} />
+                <Stack.Screen name="MainRoute" component={RootRoute} />
+              </Stack.Navigator>
             </NavigationContainer>
           </BottomSheetModalProvider>
         </ContextState>

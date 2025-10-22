@@ -2,11 +2,13 @@ import {Dimensions, Text} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
 import {GetFontSizeValue} from '../../localstorage/AppSettings';
+import {useAppTheme} from '../../theme';
 
 export const PlainText = ({text, style, numberOfLine}) => {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const width = Dimensions.get('window').width;
   const [Size, setSize] = useState(width * 0.035);
+
   async function getFont() {
     const data = await GetFontSizeValue();
     if (data === 'Medium') {

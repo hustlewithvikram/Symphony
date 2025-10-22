@@ -6,6 +6,8 @@ import {
   Text,
   TouchableOpacity,
   PanResponder,
+  Alert,
+  Pressable,
 } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import Animated, {
@@ -26,6 +28,7 @@ import TrackPlayer, {
 import FastImage from 'react-native-fast-image';
 import {useAppTheme} from '../../theme';
 import {useNavigationState} from '@react-navigation/native';
+import QueueBottomSheet from './QueueBottomSheet';
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 const AnimatedTouchableOpacity =
@@ -59,6 +62,7 @@ const BottomSheetMusic = () => {
 
   // Use animated index instead of direct position value
   const animatedIndex = useSharedValue(0);
+  const isBottomSheetOpen = animatedIndex.value > 0;
 
   const snapPoints = [150, '100%'];
 
@@ -506,6 +510,12 @@ const BottomSheetMusic = () => {
     await toggleRepeat();
   };
 
+  const handleSheetTouch = () => {
+    if (!isBottomSheetOpen) {
+      bottomSheetRef.current.expand();
+    }
+  };
+
   // Don't render the bottom sheet at all when in Settings route
   if (isSettingsRoute) {
     return null;
@@ -522,9 +532,16 @@ const BottomSheetMusic = () => {
         styles.background,
         {backgroundColor: theme.colors.primary},
       ]}
+      containerStyle={{
+        marginBottom: -60,
+      }}
       enablePanDownToClose={false}
       enableOverDrag={false}>
-      <View style={styles.container}>
+      <Pressable
+        style={styles.container}
+        onPress={() => {
+          handleSheetTouch();
+        }}>
         {/* Album Art */}
         <Animated.View style={[styles.coverAndSongInfo, coverAndSongInfoStyle]}>
           <Animated.View style={[styles.albumArt, albumArtStyle]}>
@@ -542,7 +559,7 @@ const BottomSheetMusic = () => {
             ) : (
               <View
                 style={{
-                  backgroundColor: theme.colors.primary,
+                  backgroundColor: theme.colors.white,
                   height: '100%',
                   width: '100%',
                 }}
@@ -653,7 +670,9 @@ const BottomSheetMusic = () => {
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>
-      </View>
+
+        <QueueBottomSheet />
+      </Pressable>
     </BottomSheet>
   );
 };

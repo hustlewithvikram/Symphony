@@ -22,7 +22,7 @@ function EachTabs({item, isActive, index, setActive}) {
           }}>
           <Text
             style={{
-              color: theme.colors.textWhite,
+              color: theme.colors.text,
               fontSize: width * 0.04,
               fontFamily: 'roboto',
               fontWeight: 700,

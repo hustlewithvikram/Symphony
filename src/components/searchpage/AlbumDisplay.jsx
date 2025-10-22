@@ -45,10 +45,16 @@ export default function AlbumsDisplay({data, limit, Searchtext}) {
   }
 
   const width = Dimensions.get('window').width;
-  const GAP = 12; // adjust gap between cards
+  const GAP = 4; // adjust gap between cards
 
   return (
-    <View>
+    <View
+      style={{
+        // backgroundColor: 'red',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
       {Data?.data?.results?.length !== 0 && (
         <FlatList
           showsVerticalScrollIndicator={false}
@@ -61,8 +67,8 @@ export default function AlbumsDisplay({data, limit, Searchtext}) {
             }, 200);
           }}
           contentContainerStyle={{
-            paddingBottom: 220,
-            paddingHorizontal: GAP / 2,
+            paddingBottom: 20,
+            // paddingHorizontal: GAP / 2,
           }}
           columnWrapperStyle={{
             justifyContent: 'space-between',
