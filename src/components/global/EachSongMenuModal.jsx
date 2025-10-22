@@ -244,10 +244,10 @@ export const EachSongMenuModal = memo(({Visible, setVisible}) => {
                     compact
                     style={{backgroundColor: theme.colors.surfaceVariant}}
                     textStyle={{
-                      color: theme.colors.onPrimaryContainer,
+                      color: theme.colors.onSurfaceVariant,
                       fontSize: 11,
                     }}>
-                    {Visible.language}
+                    {Visible.language?.toUpperCase()}
                   </Chip>
                 )}
                 {Visible.duration && (

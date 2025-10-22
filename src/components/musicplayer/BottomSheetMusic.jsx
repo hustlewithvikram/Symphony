@@ -1,4 +1,4 @@
-import React, {useRef, useState, useEffect} from 'react';
+import React, {useRef, useState, useEffect, useCallback, useMemo} from 'react';
 import {
   Dimensions,
   StyleSheet,
@@ -6,8 +6,6 @@ import {
   Text,
   TouchableOpacity,
   PanResponder,
-  Alert,
-  Pressable,
 } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import Animated, {
@@ -15,6 +13,7 @@ import Animated, {
   useSharedValue,
   interpolate,
   Extrapolate,
+  runOnJS,
 } from 'react-native-reanimated';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import TrackPlayer, {
@@ -24,28 +23,276 @@ import TrackPlayer, {
   RepeatMode,
   useTrackPlayerEvents,
   Event,
+  State,
 } from 'react-native-track-player';
 import FastImage from 'react-native-fast-image';
 import {useAppTheme} from '../../theme';
 import {useNavigationState} from '@react-navigation/native';
 import QueueBottomSheet from './QueueBottomSheet';
+import {ActivityIndicator} from 'react-native-paper';
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedView = Animated.createAnimatedComponent(View);
 
+// Memoized components for better performance
+const Icon = React.memo(({name, size, color}) => (
+  <MaterialIcons name={name} size={size} color={color} />
+));
+
+const AlbumArt = React.memo(({artwork, theme, style}) => {
+  return (
+    <Animated.View style={style}>
+      {artwork ? (
+        <FastImage
+          source={{
+            uri: artwork,
+            priority: FastImage.priority.normal,
+          }}
+          style={styles.albumArtImage}
+          resizeMode={FastImage.resizeMode.cover}
+        />
+      ) : (
+        <View
+          style={[
+            styles.albumArtPlaceholder,
+            {backgroundColor: theme.colors.surface},
+          ]}
+        />
+      )}
+    </Animated.View>
+  );
+});
+
+const ProgressBar = React.memo(
+  ({duration, position, theme, onSeek, progressStyle}) => {
+    const [progressBarLayout, setProgressBarLayout] = useState({
+      width: 0,
+      x: 0,
+    });
+    const isDragging = useSharedValue(false);
+    const dragProgress = useSharedValue(0);
+
+    // Throttled progress update
+    const progressPercentage = useSharedValue(0);
+
+    useEffect(() => {
+      if (duration > 0) {
+        progressPercentage.value = (position / duration) * 100;
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [position, duration]);
+
+    const handleProgressBarLayout = useCallback(event => {
+      const {width, x} = event.nativeEvent.layout;
+      setProgressBarLayout({width, x});
+    }, []);
+
+    const panResponder = useRef(
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: event => {
+          if (!progressBarLayout.width) return;
+
+          const touchX = event.nativeEvent.locationX;
+          const newPercentage = Math.max(
+            0,
+            Math.min((touchX / progressBarLayout.width) * 100, 100),
+          );
+
+          isDragging.value = true;
+          dragProgress.value = newPercentage;
+        },
+        onPanResponderMove: (event, gestureState) => {
+          if (!progressBarLayout.width) return;
+
+          const touchX = Math.max(
+            0,
+            Math.min(
+              gestureState.moveX - progressBarLayout.x,
+              progressBarLayout.width,
+            ),
+          );
+          const newPercentage = Math.max(
+            0,
+            Math.min((touchX / progressBarLayout.width) * 100, 100),
+          );
+
+          dragProgress.value = newPercentage;
+        },
+        onPanResponderRelease: () => {
+          if (duration > 0) {
+            const newPosition = (dragProgress.value / 100) * duration;
+            runOnJS(onSeek)(newPosition);
+          }
+          isDragging.value = false;
+        },
+        onPanResponderTerminate: () => {
+          isDragging.value = false;
+        },
+      }),
+    ).current;
+
+    const progressFillStyle = useAnimatedStyle(() => {
+      const progress = isDragging.value
+        ? dragProgress.value
+        : progressPercentage.value;
+      return {
+        width: `${progress}%`,
+      };
+    });
+
+    const formatTime = useCallback(seconds => {
+      if (!isFinite(seconds)) return '0:00';
+      const mins = Math.floor(Math.max(0, seconds) / 60);
+      const secs = Math.floor(Math.max(0, seconds) % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }, []);
+
+    const currentTime = isDragging.value
+      ? (dragProgress.value / 100) * duration
+      : position;
+
+    return (
+      <Animated.View style={[styles.progressContainer, progressStyle]}>
+        <View
+          style={styles.progressBackground}
+          onLayout={handleProgressBarLayout}
+          {...panResponder.panHandlers}>
+          <AnimatedView
+            style={[
+              styles.progressFill,
+              {backgroundColor: theme.colors.background},
+              progressFillStyle,
+            ]}
+          />
+        </View>
+        <View style={styles.timeContainer}>
+          <Text style={[styles.timeText, {color: theme.colors.text}]}>
+            {formatTime(currentTime)}
+          </Text>
+          <Text style={[styles.timeText, {color: theme.colors.text}]}>
+            {formatTime(duration)}
+          </Text>
+        </View>
+      </Animated.View>
+    );
+  },
+);
+
+const Controls = React.memo(
+  ({
+    isPlaying,
+    isBuffering,
+    repeatMode,
+    theme,
+    onPlayPause,
+    onNext,
+    onPrevious,
+    onRepeat,
+    onShuffle,
+    controlsStyle,
+    playButtonStyle,
+    otherControlsStyle,
+  }) => {
+    const getRepeatIcon = useCallback(() => {
+      switch (repeatMode) {
+        case RepeatMode.Track:
+          return 'repeat-one';
+        case RepeatMode.Queue:
+          return 'repeat';
+        default:
+          return 'repeat';
+      }
+    }, [repeatMode]);
+
+    const getRepeatColor = useCallback(() => {
+      return repeatMode !== RepeatMode.Off ? '#000000FF' : '#fff';
+    }, [repeatMode]);
+
+    // Memoized control buttons to prevent unnecessary re-renders
+    const ShuffleButton = useMemo(
+      () => (
+        <TouchableOpacity onPress={onShuffle} style={styles.controlButton}>
+          <Icon name="shuffle" size={24} color="#fff" />
+        </TouchableOpacity>
+      ),
+      [onShuffle],
+    );
+
+    const PreviousButton = useMemo(
+      () => (
+        <TouchableOpacity onPress={onPrevious} style={styles.controlButton}>
+          <Icon name="skip-previous" size={24} color="#fff" />
+        </TouchableOpacity>
+      ),
+      [onPrevious],
+    );
+
+    const NextButton = useMemo(
+      () => (
+        <TouchableOpacity onPress={onNext} style={styles.controlButton}>
+          <Icon name="skip-next" size={24} color="#fff" />
+        </TouchableOpacity>
+      ),
+      [onNext],
+    );
+
+    const RepeatButton = useMemo(
+      () => (
+        <TouchableOpacity onPress={onRepeat} style={styles.controlButton}>
+          <Icon name={getRepeatIcon()} size={24} color={getRepeatColor()} />
+        </TouchableOpacity>
+      ),
+      [onRepeat, getRepeatIcon, getRepeatColor],
+    );
+
+    // Memoized play/pause button content
+    const PlayPauseContent = useMemo(() => {
+      if (isBuffering) {
+        return <ActivityIndicator size="large" color="#fff" />;
+      }
+      return isPlaying ? (
+        <Icon name="pause-circle" size={70} color="#fff" />
+      ) : (
+        <Icon name="play-circle" size={70} color="#fff" />
+      );
+    }, [isPlaying, isBuffering]);
+
+    return (
+      <Animated.View style={[styles.controlsContainer, controlsStyle]}>
+        <Animated.View style={[styles.otherControls, otherControlsStyle]}>
+          {ShuffleButton}
+          {PreviousButton}
+        </Animated.View>
+
+        <AnimatedTouchableOpacity
+          onPress={onPlayPause}
+          style={[styles.playButton, playButtonStyle]}
+          disabled={isBuffering}>
+          {PlayPauseContent}
+        </AnimatedTouchableOpacity>
+
+        <Animated.View style={[styles.otherControls, otherControlsStyle]}>
+          {NextButton}
+          {RepeatButton}
+        </Animated.View>
+      </Animated.View>
+    );
+  },
+);
+
 const BottomSheetMusic = () => {
   const bottomSheetRef = useRef(null);
   const currentPlaying = useActiveTrack();
-  const {position, duration} = useProgress();
+  const {position, duration} = useProgress(200); // Throttle progress updates
   const playbackState = usePlaybackState();
 
   // Get current navigation route
   const navigationState = useNavigationState(state => state);
   const currentRoute = navigationState?.routes[navigationState.index]?.name;
-
-  console.log('navigationState', navigationState);
 
   // Check if current route is Settings
   const isSettingsRoute = currentRoute === 'Settings';
@@ -54,8 +301,8 @@ const BottomSheetMusic = () => {
   const theme = useAppTheme();
 
   // Determine if music is playing based on playback state
-  const isPlaying = playbackState.state === 'playing';
-  const isBuffering = playbackState.state === 'buffering';
+  const isPlaying = playbackState.state === State.Playing;
+  const isBuffering = playbackState.state === State.Buffering;
 
   // Repeat state
   const [repeatMode, setRepeatMode] = useState(RepeatMode.Off);
@@ -65,21 +312,6 @@ const BottomSheetMusic = () => {
   const isBottomSheetOpen = animatedIndex.value > 0;
 
   const snapPoints = [150, '100%'];
-
-  // Animated value for progress during drag
-  const dragProgress = useSharedValue(0);
-  const isDragging = useSharedValue(false);
-
-  // Store the progress bar dimensions
-  const [progressBarLayout, setProgressBarLayout] = useState({width: 0, x: 0});
-
-  // Track repeat mode changes
-  useTrackPlayerEvents([Event.PlaybackQueueEnded], async event => {
-    if (event.type === Event.PlaybackQueueEnded) {
-      const currentRepeatMode = await TrackPlayer.getRepeatMode();
-      setRepeatMode(currentRepeatMode);
-    }
-  });
 
   // Initialize repeat mode on component mount
   useEffect(() => {
@@ -97,41 +329,79 @@ const BottomSheetMusic = () => {
     }
   }, [isSettingsRoute]);
 
-  async function PlaySong() {
-    await TrackPlayer.play();
-  }
-  async function PauseSong() {
-    await TrackPlayer.pause();
-  }
-  async function seekTo(position) {
-    await TrackPlayer.seekTo(position);
-  }
-  async function skipToNext() {
-    await TrackPlayer.skipToNext();
-  }
-  async function skipToPrevious() {
-    await TrackPlayer.skipToPrevious();
-  }
-  async function toggleRepeat() {
-    let newMode;
-    switch (repeatMode) {
-      case RepeatMode.Off:
-        newMode = RepeatMode.Track;
-        break;
-      case RepeatMode.Track:
-        newMode = RepeatMode.Queue;
-        break;
-      case RepeatMode.Queue:
-        newMode = RepeatMode.Off;
-        break;
-      default:
-        newMode = RepeatMode.Off;
+  // Track repeat mode changes
+  useTrackPlayerEvents([Event.PlaybackQueueEnded], async event => {
+    if (event.type === Event.PlaybackQueueEnded) {
+      const currentRepeatMode = await TrackPlayer.getRepeatMode();
+      setRepeatMode(currentRepeatMode);
     }
-    await TrackPlayer.setRepeatMode(newMode);
-    setRepeatMode(newMode);
-  }
+  });
 
-  const handleShuffle = async () => {
+  // Memoized track player functions
+  const playSong = useCallback(async () => {
+    try {
+      await TrackPlayer.play();
+    } catch (error) {
+      console.log('Play error:', error);
+    }
+  }, []);
+
+  const pauseSong = useCallback(async () => {
+    try {
+      await TrackPlayer.pause();
+    } catch (error) {
+      console.log('Pause error:', error);
+    }
+  }, []);
+
+  const seekTo = useCallback(async position => {
+    try {
+      await TrackPlayer.seekTo(position);
+    } catch (error) {
+      console.log('Seek error:', error);
+    }
+  }, []);
+
+  const skipToNext = useCallback(async () => {
+    try {
+      await TrackPlayer.skipToNext();
+    } catch (error) {
+      console.log('Skip next error:', error);
+    }
+  }, []);
+
+  const skipToPrevious = useCallback(async () => {
+    try {
+      await TrackPlayer.skipToPrevious();
+    } catch (error) {
+      console.log('Skip previous error:', error);
+    }
+  }, []);
+
+  const toggleRepeat = useCallback(async () => {
+    try {
+      let newMode;
+      switch (repeatMode) {
+        case RepeatMode.Off:
+          newMode = RepeatMode.Track;
+          break;
+        case RepeatMode.Track:
+          newMode = RepeatMode.Queue;
+          break;
+        case RepeatMode.Queue:
+          newMode = RepeatMode.Off;
+          break;
+        default:
+          newMode = RepeatMode.Off;
+      }
+      await TrackPlayer.setRepeatMode(newMode);
+      setRepeatMode(newMode);
+    } catch (error) {
+      console.log('Repeat toggle error:', error);
+    }
+  }, [repeatMode]);
+
+  const handleShuffle = useCallback(async () => {
     try {
       const queue = await TrackPlayer.getQueue();
       if (queue.length <= 1) return;
@@ -141,141 +411,44 @@ const BottomSheetMusic = () => {
       // Shuffle the queue
       const shuffledQueue = [...queue].sort(() => Math.random() - 0.5);
 
-      // Use setQueue if available in your version
-      await TrackPlayer.setQueue(shuffledQueue);
-      await TrackPlayer.skip(0);
+      await TrackPlayer.reset();
+      await TrackPlayer.add(shuffledQueue);
 
       if (wasPlaying) {
         await TrackPlayer.play();
       }
-
-      console.log('Queue shuffled!');
     } catch (error) {
-      console.log('Error shuffling:', error);
+      console.log('Shuffle error:', error);
     }
-  };
+  }, [isPlaying]);
 
-  // Format time function
-  const formatTime = seconds => {
-    if (!isFinite(seconds)) return '0:00';
-    const mins = Math.floor(Math.max(0, seconds) / 60);
-    const secs = Math.floor(Math.max(0, seconds) % 60);
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
-  // Calculate progress percentage
-  const progressPercentage = duration > 0 ? (position / duration) * 100 : 0;
-
-  // Handle progress bar layout
-  const handleProgressBarLayout = event => {
-    const {width, x} = event.nativeEvent.layout;
-    setProgressBarLayout({width, x});
-  };
-
-  // Handle touch on progress bar
-  const handleProgressTouch = event => {
-    const touchX = event.nativeEvent.locationX;
-    const newPercentage = Math.max(
-      0,
-      Math.min((touchX / progressBarLayout.width) * 100, 100),
-    );
-
-    isDragging.value = true;
-    dragProgress.value = newPercentage;
-
-    if (duration > 0) {
-      const newPosition = (newPercentage / 100) * duration;
-      seekTo(newPosition);
+  const handlePlayPause = useCallback(async () => {
+    if (isPlaying) {
+      await pauseSong();
+    } else {
+      await playSong();
     }
+  }, [isPlaying, pauseSong, playSong]);
 
-    // Reset dragging after a short delay
-    setTimeout(() => {
-      isDragging.value = false;
-    }, 100);
-  };
+  const handleNext = useCallback(async () => {
+    await skipToNext();
+  }, [skipToNext]);
 
-  // PanResponder for the progress bar
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
+  const handlePrevious = useCallback(async () => {
+    await skipToPrevious();
+  }, [skipToPrevious]);
 
-    onPanResponderGrant: event => {
-      if (!progressBarLayout.width) return;
+  const handleRepeat = useCallback(async () => {
+    await toggleRepeat();
+  }, [toggleRepeat]);
 
-      const touchX = event.nativeEvent.locationX;
-      const newPercentage = Math.max(
-        0,
-        Math.min((touchX / progressBarLayout.width) * 100, 100),
-      );
-
-      isDragging.value = true;
-      dragProgress.value = newPercentage;
-    },
-
-    onPanResponderMove: (event, gestureState) => {
-      if (!progressBarLayout.width) return;
-
-      const touchX = Math.max(
-        0,
-        Math.min(
-          gestureState.moveX - progressBarLayout.x,
-          progressBarLayout.width,
-        ),
-      );
-      const newPercentage = Math.max(
-        0,
-        Math.min((touchX / progressBarLayout.width) * 100, 100),
-      );
-
-      dragProgress.value = newPercentage;
-    },
-
-    onPanResponderRelease: () => {
-      if (duration > 0) {
-        const newPosition = (dragProgress.value / 100) * duration;
-        seekTo(newPosition);
-      }
-      isDragging.value = false;
-    },
-
-    onPanResponderTerminate: () => {
-      isDragging.value = false;
-    },
-  });
-
-  // Progress fill style - uses drag progress when dragging, otherwise actual progress
-  const progressFillStyle = useAnimatedStyle(() => {
-    const widthPercent = isDragging.value
-      ? dragProgress.value
-      : progressPercentage;
-    return {
-      width: `${widthPercent}%`,
-    };
-  });
-
-  // Current time display - shows drag time when dragging
-  const currentTime = isDragging.value
-    ? (dragProgress.value / 100) * duration
-    : position;
-
-  // Get repeat icon based on repeat mode
-  const getRepeatIcon = () => {
-    switch (repeatMode) {
-      case RepeatMode.Track:
-        return 'repeat-one';
-      case RepeatMode.Queue:
-        return 'repeat';
-      default:
-        return 'repeat';
+  const handleSheetTouch = useCallback(() => {
+    if (!isBottomSheetOpen && bottomSheetRef.current) {
+      bottomSheetRef.current.expand();
     }
-  };
+  }, [isBottomSheetOpen]);
 
-  // Get repeat icon color based on repeat mode
-  const getRepeatColor = () => {
-    return repeatMode !== RepeatMode.Off ? '#1DB954' : '#fff';
-  };
-
-  // Album art animation
+  // Keep your existing animated styles (they are already optimized)
   const albumArtStyle = useAnimatedStyle(() => {
     const size = interpolate(
       animatedIndex.value,
@@ -283,14 +456,12 @@ const BottomSheetMusic = () => {
       [60, 300],
       Extrapolate.CLAMP,
     );
-
     const borderRadius = interpolate(
       animatedIndex.value,
       [0, 1],
       [10, 12],
       Extrapolate.CLAMP,
     );
-
     const marginTop = interpolate(
       animatedIndex.value,
       [0, 1],
@@ -307,7 +478,6 @@ const BottomSheetMusic = () => {
     };
   });
 
-  // Song info container animation
   const songInfoStyle = useAnimatedStyle(() => {
     const marginLeft = interpolate(
       animatedIndex.value,
@@ -315,14 +485,12 @@ const BottomSheetMusic = () => {
       [5, 0],
       Extrapolate.CLAMP,
     );
-
     const marginTop = interpolate(
       animatedIndex.value,
       [0, 1],
       [10, 40],
       Extrapolate.CLAMP,
     );
-
     const paddingTop = interpolate(
       animatedIndex.value,
       [0, 1],
@@ -330,26 +498,14 @@ const BottomSheetMusic = () => {
       Extrapolate.CLAMP,
     );
 
-    return {
-      marginLeft,
-      marginTop,
-      paddingTop,
-    };
+    return {marginLeft, marginTop, paddingTop};
   });
 
   const coverAndSongInfoStyle = useAnimatedStyle(() => {
     const flexDirection = animatedIndex.value > 0.5 ? 'column' : 'row';
-    const alignItems = 'center';
-    const gap = animatedIndex.value > 0.5 ? 20 : 10;
-
-    return {
-      flexDirection,
-      alignItems,
-      gap,
-    };
+    return {flexDirection, alignItems: 'center', gap: 10};
   });
 
-  // Mini player controls animation
   const miniControlsStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       animatedIndex.value,
@@ -357,14 +513,12 @@ const BottomSheetMusic = () => {
       [1, 0],
       Extrapolate.CLAMP,
     );
-
     const scale = interpolate(
       animatedIndex.value,
       [0, 0.3],
       [1, 0.8],
       Extrapolate.CLAMP,
     );
-
     const paddingTop = interpolate(
       animatedIndex.value,
       [0, 1],
@@ -372,14 +526,9 @@ const BottomSheetMusic = () => {
       Extrapolate.CLAMP,
     );
 
-    return {
-      opacity,
-      transform: [{scale}],
-      paddingTop,
-    };
+    return {opacity, transform: [{scale}], paddingTop};
   });
 
-  // Title text animation
   const titleStyle = useAnimatedStyle(() => {
     const fontSize = interpolate(
       animatedIndex.value,
@@ -387,16 +536,10 @@ const BottomSheetMusic = () => {
       [14, 28],
       Extrapolate.CLAMP,
     );
-
     const textAlign = animatedIndex.value > 0.5 ? 'center' : 'left';
-
-    return {
-      fontSize,
-      textAlign,
-    };
+    return {fontSize, textAlign};
   });
 
-  // Artist text animation
   const artistStyle = useAnimatedStyle(() => {
     const fontSize = interpolate(
       animatedIndex.value,
@@ -404,16 +547,10 @@ const BottomSheetMusic = () => {
       [12, 18],
       Extrapolate.CLAMP,
     );
-
     const textAlign = animatedIndex.value > 0.5 ? 'center' : 'left';
-
-    return {
-      fontSize,
-      textAlign,
-    };
+    return {fontSize, textAlign};
   });
 
-  // Progress bar animation
   const progressStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       animatedIndex.value,
@@ -421,13 +558,9 @@ const BottomSheetMusic = () => {
       [0, 1],
       Extrapolate.CLAMP,
     );
-
-    return {
-      opacity,
-    };
+    return {opacity};
   });
 
-  // Controls animation
   const controlsStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       animatedIndex.value,
@@ -435,13 +568,9 @@ const BottomSheetMusic = () => {
       [0, 1],
       Extrapolate.CLAMP,
     );
-
-    return {
-      opacity,
-    };
+    return {opacity};
   });
 
-  // Play button animation
   const playButtonStyle = useAnimatedStyle(() => {
     const size = interpolate(
       animatedIndex.value,
@@ -449,15 +578,9 @@ const BottomSheetMusic = () => {
       [40, 70],
       Extrapolate.CLAMP,
     );
-
-    return {
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-    };
+    return {width: size, height: size, borderRadius: size / 2};
   });
 
-  // Other controls animation
   const otherControlsStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       animatedIndex.value,
@@ -465,56 +588,14 @@ const BottomSheetMusic = () => {
       [0, 1],
       Extrapolate.CLAMP,
     );
-
     const scale = interpolate(
       animatedIndex.value,
       [0, 0.3],
       [0.5, 1],
       Extrapolate.CLAMP,
     );
-
-    return {
-      opacity,
-      transform: [{scale}],
-    };
+    return {opacity, transform: [{scale}]};
   });
-
-  // Bottom sheet container style - hides when in Settings
-  const bottomSheetContainerStyle = useAnimatedStyle(() => {
-    const display = isSettingsRoute ? 'none' : 'flex';
-    const opacity = isSettingsRoute ? 0 : 1;
-
-    return {
-      display,
-      opacity,
-    };
-  });
-
-  const handlePlayPause = async () => {
-    if (isPlaying) {
-      PauseSong();
-    } else {
-      PlaySong();
-    }
-  };
-
-  const handleNext = async () => {
-    await skipToNext();
-  };
-
-  const handlePrevious = async () => {
-    await skipToPrevious();
-  };
-
-  const handleRepeat = async () => {
-    await toggleRepeat();
-  };
-
-  const handleSheetTouch = () => {
-    if (!isBottomSheetOpen) {
-      bottomSheetRef.current.expand();
-    }
-  };
 
   // Don't render the bottom sheet at all when in Settings route
   if (isSettingsRoute) {
@@ -532,40 +613,20 @@ const BottomSheetMusic = () => {
         styles.background,
         {backgroundColor: theme.colors.primary},
       ]}
-      containerStyle={{
-        marginBottom: -60,
-      }}
+      containerStyle={styles.bottomSheetContainer}
       enablePanDownToClose={false}
       enableOverDrag={false}>
-      <Pressable
+      <TouchableOpacity
         style={styles.container}
-        onPress={() => {
-          handleSheetTouch();
-        }}>
-        {/* Album Art */}
+        onPress={handleSheetTouch}
+        activeOpacity={1}>
+        {/* Album Art and Song Info */}
         <Animated.View style={[styles.coverAndSongInfo, coverAndSongInfoStyle]}>
-          <Animated.View style={[styles.albumArt, albumArtStyle]}>
-            {currentPlaying?.artwork ? (
-              <FastImage
-                source={{
-                  uri:
-                    currentPlaying?.artwork ??
-                    'https://htmlcolorcodes.com/assets/images/colors/gray-color-solid-background-1920x1080.png',
-                  priority: FastImage.priority.high,
-                }}
-                style={{width: '100%', height: '100%'}}
-                resizeMode={FastImage.resizeMode.cover}
-              />
-            ) : (
-              <View
-                style={{
-                  backgroundColor: theme.colors.white,
-                  height: '100%',
-                  width: '100%',
-                }}
-              />
-            )}
-          </Animated.View>
+          <AlbumArt
+            artwork={currentPlaying?.artwork}
+            theme={theme}
+            style={[styles.albumArt, albumArtStyle]}
+          />
 
           <Animated.View style={[styles.songInfoContainer, songInfoStyle]}>
             <AnimatedText
@@ -592,93 +653,55 @@ const BottomSheetMusic = () => {
               onPress={handlePlayPause}
               style={styles.miniPlayButton}>
               {isPlaying ? (
-                <MaterialIcons name={'pause-circle'} size={40} color="#fff" />
+                <Icon name="pause-circle" size={40} color="#fff" />
               ) : (
-                <MaterialIcons name={'play-circle'} size={40} color="#fff" />
+                <Icon name="play-circle" size={40} color="#fff" />
               )}
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleNext}
               style={styles.miniNextButton}>
-              <MaterialIcons name={'skip-next'} size={24} color="#fff" />
+              <Icon name="skip-next" size={24} color="#fff" />
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>
 
         {/* Progress Bar */}
-        <Animated.View style={[styles.progressContainer, progressStyle]}>
-          <View
-            style={styles.progressBackground}
-            onLayout={handleProgressBarLayout}
-            onTouchStart={handleProgressTouch}
-            {...panResponder.panHandlers}>
-            <AnimatedView
-              style={[
-                styles.progressFill,
-                {backgroundColor: theme.colors.background},
-                progressFillStyle,
-              ]}
-            />
-          </View>
-          <View style={styles.timeContainer}>
-            <Text style={[styles.timeText, {color: theme.colors.text}]}>
-              {formatTime(currentTime)}
-            </Text>
-            <Text style={[styles.timeText, {color: theme.colors.text}]}>
-              {formatTime(duration)}
-            </Text>
-          </View>
-        </Animated.View>
+        <ProgressBar
+          duration={duration}
+          position={position}
+          theme={theme}
+          onSeek={seekTo}
+          progressStyle={progressStyle}
+        />
 
         {/* Controls */}
-        <Animated.View style={[styles.controlsContainer, controlsStyle]}>
-          <Animated.View style={[styles.otherControls, otherControlsStyle]}>
-            <TouchableOpacity
-              onPress={handleShuffle}
-              style={styles.controlButton}>
-              <MaterialIcons name={'shuffle'} size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handlePrevious}
-              style={styles.controlButton}>
-              <MaterialIcons name={'skip-previous'} size={24} color="#fff" />
-            </TouchableOpacity>
-          </Animated.View>
-
-          <AnimatedTouchableOpacity
-            onPress={handlePlayPause}
-            style={[styles.playButton, playButtonStyle]}>
-            {isPlaying ? (
-              <MaterialIcons name={'pause-circle'} size={70} color="#fff" />
-            ) : (
-              <MaterialIcons name={'play-circle'} size={70} color="#fff" />
-            )}
-          </AnimatedTouchableOpacity>
-
-          <Animated.View style={[styles.otherControls, otherControlsStyle]}>
-            <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
-              <MaterialIcons name={'skip-next'} size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleRepeat}
-              style={styles.controlButton}>
-              <MaterialIcons
-                name={getRepeatIcon()}
-                size={24}
-                color={getRepeatColor()}
-              />
-            </TouchableOpacity>
-          </Animated.View>
-        </Animated.View>
+        <Controls
+          isPlaying={isPlaying}
+          isBuffering={isBuffering}
+          repeatMode={repeatMode}
+          theme={theme}
+          onPlayPause={handlePlayPause}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onRepeat={handleRepeat}
+          onShuffle={handleShuffle}
+          controlsStyle={controlsStyle}
+          playButtonStyle={playButtonStyle}
+          otherControlsStyle={otherControlsStyle}
+        />
 
         <QueueBottomSheet />
-      </Pressable>
+      </TouchableOpacity>
     </BottomSheet>
   );
 };
 
 const styles = StyleSheet.create({
   background: {},
+  bottomSheetContainer: {
+    marginBottom: -60,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 20,
@@ -686,17 +709,24 @@ const styles = StyleSheet.create({
   albumArt: {
     overflow: 'hidden',
   },
+  albumArtImage: {
+    width: '100%',
+    height: '100%',
+  },
+  albumArtPlaceholder: {
+    width: '100%',
+    height: '100%',
+  },
   songInfoContainer: {
     minHeight: 60,
     flex: 1,
   },
   songTitle: {
-    color: 'white',
     fontWeight: 'bold',
   },
   songArtist: {
-    color: '#888',
     marginTop: 4,
+    opacity: 0.8,
   },
   miniControls: {
     flexDirection: 'row',
@@ -711,7 +741,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   miniNextButton: {
-    backgroundColor: '#333',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 20,
     width: 36,
     height: 36,
@@ -723,23 +753,23 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   progressBackground: {
-    height: 10,
-    backgroundColor: '#333',
-    borderRadius: 999,
+    height: 12,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 6,
     marginBottom: 8,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 999,
+    borderRadius: 6,
   },
   timeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   timeText: {
-    color: '#888',
     fontSize: 12,
+    opacity: 0.7,
   },
   controlsContainer: {
     flexDirection: 'row',
@@ -764,4 +794,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomSheetMusic;
+export default React.memo(BottomSheetMusic);

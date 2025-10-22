@@ -110,15 +110,14 @@ export const Home = () => {
           </PaddingConatiner>
 
           {renderHorizontalPlaylists(data.data.playlists)}
-          <PaddingConatiner>
-            <Heading text="Trending Albums" />
-          </PaddingConatiner>
+
           {renderHorizontalAlbums(data.data.trending?.albums)}
 
           <PaddingConatiner>
             <HorizontalScrollSongs id={data.data.charts[1]?.id} />
             <Heading text="Top Charts" />
           </PaddingConatiner>
+
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -129,7 +128,6 @@ export const Home = () => {
 
           <PaddingConatiner>
             <HorizontalScrollSongs id={data.data.charts[3]?.id} />
-            <Heading text="Recommended Albums" />
           </PaddingConatiner>
           {renderHorizontalAlbums(data.data.albums)}
 

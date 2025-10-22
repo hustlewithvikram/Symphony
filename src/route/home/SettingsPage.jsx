@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unstable-nested-components */
 import React, {useState, useEffect, useMemo} from 'react';
 import {View, ScrollView, StyleSheet, ToastAndroid} from 'react-native';
 import {
@@ -33,7 +32,6 @@ const Icon = React.memo(({name, size, color}) => (
   <MaterialIcons name={name} size={size} color={color} />
 ));
 
-// Improved SettingMenuItem with better styling
 const SettingMenuItem = React.memo(
   ({label, value, description, options, onSelect, theme, loading}) => {
     const [menuVisible, setMenuVisible] = useState(false);
@@ -43,28 +41,18 @@ const SettingMenuItem = React.memo(
         <List.Item
           title={label}
           description={description}
-          titleStyle={[styles.settingTitle, {color: theme.colors.onSurface}]}
-          descriptionStyle={[
-            styles.settingDescription,
-            {color: theme.colors.onSurfaceVariant},
-          ]}
-          style={styles.settingListItem}
+          titleStyle={{color: theme.colors.onSurface}}
+          descriptionStyle={{color: theme.colors.onSurfaceVariant}}
           right={() => (
-            <View style={styles.settingRightContainer}>
+            <View style={styles.menuRight}>
               {loading ? (
                 <ActivityIndicator size="small" color={theme.colors.primary} />
               ) : (
-                <View style={styles.valueContainer}>
-                  <View
-                    style={[
-                      styles.valueChip,
-                      {backgroundColor: theme.colors.primary + '15'},
-                    ]}>
-                    <Text
-                      style={[styles.valueText, {color: theme.colors.primary}]}>
-                      {value}
-                    </Text>
-                  </View>
+                <>
+                  <Text
+                    style={[styles.valueText, {color: theme.colors.onSurface}]}>
+                    {value}
+                  </Text>
                   <Menu
                     visible={menuVisible}
                     onDismiss={() => setMenuVisible(false)}
@@ -75,15 +63,15 @@ const SettingMenuItem = React.memo(
                         style={styles.menuButton}
                         onPress={() => setMenuVisible(true)}>
                         <Icon
-                          name="unfold-more"
-                          size={20}
+                          name="arrow-drop-down"
+                          size={22}
                           color={theme.colors.primary}
                         />
                       </Button>
                     }
                     contentStyle={[
                       styles.menuContent,
-                      {backgroundColor: theme.colors.background},
+                      {backgroundColor: theme.colors.surface},
                     ]}>
                     {options.map(option => (
                       <Menu.Item
@@ -97,21 +85,22 @@ const SettingMenuItem = React.memo(
                         style={[
                           styles.menuItem,
                           option === value && {
-                            backgroundColor: theme.colors.primary + '20',
+                            backgroundColor: theme.colors.surfaceVariant,
                           },
                         ]}
                       />
                     ))}
                   </Menu>
-                </View>
+                </>
               )}
             </View>
           )}
+          style={styles.listItem}
         />
         <Divider
           style={[
-            styles.settingDivider,
-            {backgroundColor: theme.colors.outline + '15'},
+            styles.divider,
+            {backgroundColor: theme.colors.outline + '20'},
           ]}
         />
       </>
@@ -119,30 +108,16 @@ const SettingMenuItem = React.memo(
   },
 );
 
-// Improved SettingsSection with better styling
 const SettingsSection = React.memo(({title, icon, children, theme}) => (
-  <Card
-    style={[
-      styles.sectionCard,
-      {backgroundColor: theme.colors.surface, padding: 0},
-    ]}
-    elevation={1}>
-    <Card.Content style={styles.sectionContent}>
-      <View style={styles.sectionHeader}>
-        <View
-          style={[
-            styles.sectionIcon,
-            {backgroundColor: theme.colors.primary + '15'},
-          ]}>
-          <Icon name={icon} size={18} color={theme.colors.primary} />
-        </View>
-        <Title style={[styles.sectionTitle, {color: theme.colors.onSurface}]}>
-          {title}
-        </Title>
-      </View>
-      <View style={styles.sectionChildren}>{children}</View>
-    </Card.Content>
-  </Card>
+  <View style={[styles.section, {backgroundColor: theme.colors.surface}]}>
+    <View style={styles.sectionHeader}>
+      <Icon name={icon} size={20} color={theme.colors.primary} />
+      <Title style={[styles.sectionTitle, {color: theme.colors.onSurface}]}>
+        {title}
+      </Title>
+    </View>
+    <View style={styles.sectionContent}>{children}</View>
+  </View>
 ));
 
 // Languages Dialog Component
@@ -290,10 +265,7 @@ const LanguagesDialog = React.memo(({visible, onDismiss, onConfirm, theme}) => {
       <Dialog.Actions style={styles.dialogActions}>
         <Button
           onPress={handleDismiss}
-          style={[
-            styles.actionButton,
-            {flex: 1, backgroundColor: theme.colors.surfaceVariant},
-          ]}
+          style={styles.actionButton}
           labelStyle={[
             styles.actionButtonLabel,
             {color: theme.colors.onSurfaceVariant},
@@ -310,7 +282,7 @@ const LanguagesDialog = React.memo(({visible, onDismiss, onConfirm, theme}) => {
             {backgroundColor: theme.colors.primary},
           ]}
           labelStyle={styles.confirmButtonLabel}>
-          Save
+          Save {selectedLanguages.length > 0 && `(${selectedLanguages.length})`}
         </Button>
       </Dialog.Actions>
     </Dialog>
@@ -428,11 +400,8 @@ export const SettingsPage = ({navigation}) => {
           <List.Item
             title="Change Name"
             description="Update your display name"
-            titleStyle={[styles.listTitle, {color: theme.colors.onSurface}]}
-            descriptionStyle={[
-              styles.listDescription,
-              {color: theme.colors.onSurfaceVariant},
-            ]}
+            titleStyle={{color: theme.colors.onSurface}}
+            descriptionStyle={{color: theme.colors.onSurfaceVariant}}
             left={props => (
               <List.Icon
                 {...props}
@@ -446,17 +415,14 @@ export const SettingsPage = ({navigation}) => {
           <Divider
             style={[
               styles.divider,
-              {backgroundColor: theme.colors.outline + '15'},
+              {backgroundColor: theme.colors.outline + '20'},
             ]}
           />
           <List.Item
             title="Select Languages"
             description="Choose preferred languages"
-            titleStyle={[styles.listTitle, {color: theme.colors.onSurface}]}
-            descriptionStyle={[
-              styles.listDescription,
-              {color: theme.colors.onSurfaceVariant},
-            ]}
+            titleStyle={{color: theme.colors.onSurface}}
+            descriptionStyle={{color: theme.colors.onSurfaceVariant}}
             left={props => (
               <List.Icon
                 {...props}
@@ -469,7 +435,7 @@ export const SettingsPage = ({navigation}) => {
           />
         </SettingsSection>
 
-        {/* Improved Appearance & Media Section */}
+        {/* Appearance & Media Section */}
         <SettingsSection
           title="Appearance & Media"
           icon="palette"
@@ -532,11 +498,8 @@ export const SettingsPage = ({navigation}) => {
           <List.Item
             title="Clear Cache"
             description="Free up storage space"
-            titleStyle={[styles.listTitle, {color: theme.colors.onSurface}]}
-            descriptionStyle={[
-              styles.listDescription,
-              {color: theme.colors.onSurfaceVariant},
-            ]}
+            titleStyle={{color: theme.colors.onSurface}}
+            descriptionStyle={{color: theme.colors.onSurfaceVariant}}
             left={props => (
               <List.Icon {...props} icon="broom" color={theme.colors.primary} />
             )}
@@ -550,11 +513,8 @@ export const SettingsPage = ({navigation}) => {
           <List.Item
             title="App Version"
             description="1.0.0"
-            titleStyle={[styles.listTitle, {color: theme.colors.onSurface}]}
-            descriptionStyle={[
-              styles.listDescription,
-              {color: theme.colors.onSurfaceVariant},
-            ]}
+            titleStyle={{color: theme.colors.onSurface}}
+            descriptionStyle={{color: theme.colors.onSurfaceVariant}}
             left={props => (
               <List.Icon
                 {...props}
@@ -567,17 +527,14 @@ export const SettingsPage = ({navigation}) => {
           <Divider
             style={[
               styles.divider,
-              {backgroundColor: theme.colors.outline + '15'},
+              {backgroundColor: theme.colors.outline + '20'},
             ]}
           />
           <List.Item
             title="Privacy Policy"
             description="View our privacy practices"
-            titleStyle={[styles.listTitle, {color: theme.colors.onSurface}]}
-            descriptionStyle={[
-              styles.listDescription,
-              {color: theme.colors.onSurfaceVariant},
-            ]}
+            titleStyle={{color: theme.colors.onSurface}}
+            descriptionStyle={{color: theme.colors.onSurfaceVariant}}
             left={props => (
               <List.Icon
                 {...props}
@@ -639,7 +596,7 @@ export const SettingsPage = ({navigation}) => {
                 );
               }}
               textColor={theme.colors.error}>
-              Clear Cache
+              Clear
             </Button>
           </Dialog.Actions>
         </Dialog>
@@ -684,111 +641,24 @@ export const SettingsPage = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {flex: 1},
   scrollView: {flex: 1},
-  scrollContent: {padding: 16, gap: 20},
-
-  // Improved Section Styles
-  sectionCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  sectionContent: {
-    padding: 0,
-  },
+  scrollContent: {padding: 16, gap: 16},
+  section: {borderRadius: 12, overflow: 'hidden'},
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    // paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 12,
-  },
-  sectionIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-  },
-  sectionChildren: {
-    // paddingHorizontal: 12,
-  },
-
-  // Improved Setting Menu Item Styles
-  settingListItem: {
-    paddingHorizontal: 8,
-    paddingVertical: 16,
-    minHeight: 72,
-  },
-  settingTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  settingDescription: {
-    fontSize: 13,
-    lineHeight: 16,
-    opacity: 0.8,
-  },
-  settingRightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  valueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  valueChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    minWidth: 70,
-    alignItems: 'center',
-  },
-  valueText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  menuButton: {
-    minWidth: 36,
-    marginLeft: 4,
-  },
-  menuContent: {
-    borderRadius: 12,
-    elevation: 4,
-  },
-  menuItem: {
     paddingHorizontal: 16,
     paddingVertical: 12,
+    gap: 12,
   },
-  settingDivider: {
-    height: 1,
-    marginHorizontal: 16,
-  },
-
-  // Regular List Items
-  listItem: {
-    // paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
-  listTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  listDescription: {
-    fontSize: 13,
-    opacity: 0.8,
-  },
-  divider: {
-    height: 1,
-    marginHorizontal: 16,
-  },
-
-  // Rest of the styles remain the same
+  sectionTitle: {fontSize: 16, fontWeight: '600'},
+  sectionContent: {paddingHorizontal: 8},
+  listItem: {paddingHorizontal: 8},
+  divider: {height: 1, marginHorizontal: 16},
+  menuRight: {flexDirection: 'row', alignItems: 'center'},
+  menuButton: {marginLeft: 8, minWidth: 40},
+  menuContent: {borderRadius: 8},
+  menuItem: {paddingHorizontal: 16},
+  valueText: {marginRight: 8, fontSize: 14},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -808,7 +678,7 @@ const styles = StyleSheet.create({
   dialog: {borderRadius: 12},
   textInput: {marginTop: 8},
 
-  // Languages Dialog Styles
+  // Improved Languages Dialog Styles
   languagesDialog: {
     borderRadius: 16,
     marginHorizontal: 20,
@@ -871,9 +741,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   actionButton: {
-    borderRadius: 999,
+    borderRadius: 8,
     minWidth: 80,
-    paddingVertical: 8,
   },
   actionButtonLabel: {
     fontSize: 14,

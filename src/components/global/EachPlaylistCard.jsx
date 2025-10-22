@@ -6,6 +6,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FastImage from 'react-native-fast-image';
 import {memo} from 'react';
 import {useNavigation, useTheme} from '@react-navigation/native';
+import {useAppTheme} from '../../theme';
 
 export const EachPlaylistCard = memo(function EachPlaylistCard({
   image,
@@ -15,7 +16,7 @@ export const EachPlaylistCard = memo(function EachPlaylistCard({
   MainContainerStyle,
   ImageStyle,
 }) {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const navigation = useNavigation();
 
   return (
@@ -26,7 +27,7 @@ export const EachPlaylistCard = memo(function EachPlaylistCard({
       style={({pressed}) => [
         styles.container,
         {
-          backgroundColor: theme.colors.card,
+          backgroundColor: theme.colors.background,
           transform: [{scale: pressed ? 0.98 : 1}],
         },
         MainContainerStyle,

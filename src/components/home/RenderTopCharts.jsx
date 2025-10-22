@@ -1,8 +1,12 @@
+import {useAppTheme} from '../../theme';
 import {EachPlaylistCard} from '../global/EachPlaylistCard';
 import {View} from 'react-native';
 
 export const RenderTopCharts = ({playlist}) => {
+  const theme = useAppTheme();
+
   const data = [];
+
   for (let i = 0; i < playlist.length; i = i + 2) {
     if (i === playlist.length - 1 && playlist.length % 2 !== 0) {
       data.push([playlist[i]]);
@@ -10,6 +14,7 @@ export const RenderTopCharts = ({playlist}) => {
       data.push([playlist[i], playlist[i + 1]]);
     }
   }
+
   return (
     <>
       {data.map((e, i) => (
